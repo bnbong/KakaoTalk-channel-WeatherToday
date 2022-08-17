@@ -2,3 +2,4 @@ app/WeatherTodayApp-venv/
 app/.env
 .pytest_cache
 __pycache__
+*.xlsx
