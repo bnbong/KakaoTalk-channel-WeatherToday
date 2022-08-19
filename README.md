@@ -10,3 +10,9 @@ A weather forecasting KakaoTalk channel which informs local weather.
 - Kakao developer : https://developers.kakao.com/console/app
 - Kakao developer channel reference : https://developers.kakao.com/docs/latest/ko/kakaotalk-channel/common
 - Chatbot : https://chatbot.kakao.com/
+
+## Project Flow & Documents
+
+- Jira project management : https://bnbong.atlassian.net/jira/software/projects/KWB/boards/1
+- Bitbucket : https://bitbucket.org/bnbong/kakao-weatherforecast-bot/src
+- Confluence : https://bnbong.atlassian.net/wiki/spaces/KWB/overview
