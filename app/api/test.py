@@ -59,24 +59,30 @@ class TestOuterAPI():
             'ny' : ny
         }
 
+        response = cls.requests.get(cls.url, params=cls.request_data)
+        cls.response_weather_data_json = response.json().get('response')
+
+    def get_body_items_from_raw_request(self, data):
+        response = data.json().get('response').get('body').get('items').get('item')
+
+        return response
+
     def test_could_get_data_from_weather_api(self):
         
-        response = self.requests.get(self.url, params=self.request_data)
-        
-        response_weather_data_json = response.json().get('response').get('body').get('items')
+        response = self.response_weather_data_json.get('body').get('items')
 
-        assert '00' == response.json().get('response').get('header').get('resultCode')
-        assert None != response_weather_data_json
-        assert 8 == len(response_weather_data_json.get('item')[0].get('baseDate'))
+        assert '00' == self.response_weather_data_json.get('header').get('resultCode')
+        assert None != response
+        assert 8 == len(response.get('item')[0].get('baseDate'))
 
-        print(response_weather_data_json)
+        print(response)
 
     def test_could_get_partitional_data_from_api(self):
 
         self.request_data.update({'numOfRows': '1'})
         response = self.requests.get(self.url, params=self.request_data)
 
-        json_response = response.json().get('response').get('body').get('items').get('item')
+        json_response = self.get_body_items_from_raw_request(response)
         
         assert 1 == len(json_response)
 
@@ -98,8 +104,19 @@ class TestOuterAPI():
         WSD - 풍속
         SKY - 하늘상태
         WAV - 파고
+        SNO - ???
         """
-        pass
+        from ..apps.converter import ForecastDataTrimmer
+
+        self.request_data.update({'numOfRows': '14'})
+        response = self.requests.get(self.url, params=self.request_data)
+
+        json_response = self.get_body_items_from_raw_request(response)
+
+        for item in json_response:
+            item_pointer = ForecastDataTrimmer()
+            item_pointer.category_converter(item)
+            print(item_pointer.weather_value)
 
     def test_could_get_user_id_from_message(self):
         pass
@@ -116,4 +133,16 @@ class TestInnerAPI():
         pass
 
     def test_end_point_router(self):
+        pass
+
+    def test_add_user_location(self):
+        pass
+
+    def test_add_user_time(self):
+        pass
+
+    def test_edit_user_location(self):
+        pass
+
+    def test_edit_user_time(self):
         pass
