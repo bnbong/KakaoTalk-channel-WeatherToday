@@ -77,7 +77,7 @@ class TestOuterAPI():
 
         print(response)
 
-    def test_could_get_partitional_data_from_api(self):
+    def test_could_get_one_row_data_from_api(self):
 
         self.request_data.update({'numOfRows': '1'})
         response = self.requests.get(self.url, params=self.request_data)
@@ -86,46 +86,43 @@ class TestOuterAPI():
         
         assert 1 == len(json_response)
 
-    def test_could_convert_readable_weather_info_with_list(self):
-        """
-        단기예보 API 코드값 정보
-        value of the key 'item' is list.
+    def test_could_get_different_time_data_from_api(self):
+
+        self.request_data.update({'base_time': '0200'})
+        response = self.requests.get(self.url, params=self.request_data)
+
+        json_response = self.get_body_items_from_raw_request(response)
         
-        TMP - 1시간 기온
-        TMN - 일 최저 기온
-        TMX - 일 최고 기온
-        POP - 강수확률
-        PTY - 강수형태
-        PCP - 1시간 강수량
-        REH - 습도
-        UUU - 풍속(동서성분)
-        VVV - 풍속(남북성분)
-        VEC - 풍향
-        WSD - 풍속
-        SKY - 하늘상태
-        WAV - 파고
-        SNO - ???
-        """
+        assert '0200' == (json_response[0].get('baseTime'))
+
+    def test_could_convert_readable_weather_info_with_list(self):
         from ..apps.converter import ForecastDataTrimmer
 
         self.request_data.update({'numOfRows': '14'})
         response = self.requests.get(self.url, params=self.request_data)
 
         json_response = self.get_body_items_from_raw_request(response)
+ 
+        message = []
 
         for item in json_response:
             item_pointer = ForecastDataTrimmer()
             item_pointer.category_converter(item)
-            print(item_pointer.weather_value)
+            
+            if item_pointer.weather_value is not None:
+                message.append(item_pointer.weather_value)
+        
+        assert not None == (message)
 
     def test_could_get_user_id_from_message(self):
         pass
 
 
 class TestInnerAPI():
-    
+    from ..apps.test_session_maker import client
+
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls):    
         pass
 
     @classmethod
@@ -133,16 +130,19 @@ class TestInnerAPI():
         pass
 
     def test_end_point_router(self):
-        pass
+        response = self.client.post('/api/v1/get-daily-forecast')
 
-    def test_add_user_location(self):
-        pass
-
-    def test_add_user_time(self):
-        pass
+        assert 200 == (response.status_code)
+        assert not None == (response.json())
 
     def test_edit_user_location(self):
-        pass
+        response = self.client.post('/api/v1/edit-user-location')
+
+        assert 200 == (response.status_code)
+        # assert not None == (response.json())
 
     def test_edit_user_time(self):
-        pass
+        response = self.client.post('/api/v1/edit-user-time')
+
+        assert 200 == (response.status_code)
+        # assert not None == (response.json())
