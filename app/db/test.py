@@ -1,7 +1,12 @@
-class TestUtil():
-    
-    def test_could_read_xlsx_file(self):
-        from .xlsx_reader import excel_reader
+class TestDatabase():
 
-        excel_reader()
-        
+    @classmethod
+    def setup_class(cls):
+        pass
+
+    @classmethod
+    def teardown_class(cls):
+        pass
+
+    def test_could_fetch_database(self):
+        pass
