@@ -7,7 +7,6 @@ class TestUtil():
         cls.xlsx_pointer = XlsxReader()
 
     def test_could_read_xlsx_file_to_json(self):
-
         result = self.xlsx_pointer.get_all_xlsx_data()
 
         assert 60 == (result[0])
