@@ -8,16 +8,9 @@ class KakaoChannelUsers(Base):
     __tablename__ = "kakao_channel_users"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer(50))
-    user_location_id = Column(Integer, ForeignKey("local_location_xy.id"))
-    
-    user_selected_location = relationship("LocalLocations")
+    user_id = Column(String(50))
 
-
-class LocalLocations(Base):
-    __tablename__ = "local_location_xy"
-
-    id = Column(Integer, primary_key=True)
-    location_name = Column(String(50))
-    nx = Column(Integer(50))
-    ny = Column(Integer(50))
+    user_time = Column(String(50), default="0500")
+    user_location_first = Column(String(50))
+    user_location_second = Column(String(50), nullable=True)
+    user_location_third = Column(String(50), nullable=True)
