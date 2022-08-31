@@ -121,13 +121,6 @@ class TestOuterAPI():
 class TestInnerAPI():
     from ..apps.test_session_maker import client
 
-    @classmethod
-    def setup_class(cls):    
-        pass
-
-    @classmethod
-    def teardown_class(cls):
-        pass
 
     def test_end_point_router(self):
         response = self.client.post('/api/v1/get-daily-forecast')
