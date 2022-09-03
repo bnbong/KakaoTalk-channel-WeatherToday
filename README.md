@@ -1,26 +1,32 @@
 # KakaoTalk-channel-WeatherToday
+
 <img align="center" width="350" src="https://github.com/bnbong/KakaoTalk-channel-WeatherToday/blob/main/channel_thumbnail.jpg?raw=true" alt="bot thumbnail" />
 
-A weather forecasting KakaoTalk channel which informs local weather.
+A weather forecasting KakaoTalk channel informs local weather.
 
 Add WeatherToday Bot KakaoTalk channel [HERE]()
 
 ## Documentation
+
 - [About Bot (Confluence Document)](https://bnbong.atlassian.net/l/cp/sX14rBrG)
 - [About Bot (Confluence Document Link For me)](https://bnbong.atlassian.net/wiki/spaces/KWB/overview)
 - [API Documentation]()
 
 ## Project Management
+
 - [JIRA Page](https://bnbong.atlassian.net/jira/software/projects/KWB/boards/1)
 - [Bitbucket Page](https://bitbucket.org/bnbong/kakao-weatherforecast-bot/src)
 
 ## Deployment
+
 - [Heroku Deployment Link](https://dashboard.heroku.com/apps/kakao-weather-bot-api)
 
 ## License
+
 - [Apache LICENSE](https://github.com/bnbong/KakaoTalk-channel-WeatherToday/blob/main/LICENSE)
 
 ## References
+
 ### KaKao Reference
 
 - Kakao business : [LINK](https://business.kakao.com/dashboard/)
