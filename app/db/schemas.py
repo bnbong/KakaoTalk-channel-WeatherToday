@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
 
-class KakaoUserBase(BaseModel):
+class KakaoChannelUserBase(BaseModel):
     user_id: str
 
 
-class KakaoUser(KakaoUserBase):
+class KakaoChannelUser(KakaoChannelUserBase):
     id: int
     user_time: str
     user_location_first: str
@@ -16,12 +16,12 @@ class KakaoUser(KakaoUserBase):
         orm_mode = True
 
 
-class KakaoUserLocation(KakaoUserBase):
+class KakaoChannelUserLocation(KakaoChannelUserBase):
     location_first: str
     location_second: str | None = None
     location_third: str | None = None
 
 
-class KakaoUserChangeTime(KakaoUserBase):
+class KakaoChannelUserChangeTime(KakaoChannelUserBase):
     time_to_change: str
 

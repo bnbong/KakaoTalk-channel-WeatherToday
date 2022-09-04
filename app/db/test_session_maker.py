@@ -1,4 +1,4 @@
-from ..db.database import Base
+from .database import Base
 
 from ..server import *
 

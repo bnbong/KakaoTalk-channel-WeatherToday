@@ -1,5 +1,6 @@
 class TestDatabase():
-    from ..apps.test_session_maker import client, TestingSessionLocal
+    from .test_session_maker import client, TestingSessionLocal
+    from . import models, schemas, crud
 
     @classmethod
     def setup_class(cls):
@@ -10,6 +11,6 @@ class TestDatabase():
         pass
 
     def test_could_fetch_database(self):
-        query = self.TestingSessionLocal().query(models.KakaoChannelUsers).first()
+        query = self.TestingSessionLocal().query(self.models.KakaoChannelUser).first()
 
         print(query)
