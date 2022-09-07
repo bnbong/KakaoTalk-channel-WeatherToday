@@ -4,7 +4,7 @@
 
 A weather forecasting KakaoTalk channel informs local weather.
 
-Add WeatherToday Bot KakaoTalk channel [HERE]()
+Add WeatherToday Bot KakaoTalk channel [LINK]()
 
 ## Documentation
 
