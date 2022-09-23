@@ -2,15 +2,15 @@
 
 <img align="center" width="350" src="https://github.com/bnbong/KakaoTalk-channel-WeatherToday/blob/main/channel_thumbnail.jpg?raw=true" alt="bot thumbnail" />
 
-A weather forecasting KakaoTalk channel informs local weather.
+A weather forecasting KakaoTalk bot channel informs local weather.
 
-Add WeatherToday Bot KakaoTalk channel [LINK]()
+Add WeatherToday Bot KakaoTalk channel [LINK(will be added later)]()
 
 ## Documentation
 
 - [About Bot (Confluence Document)](https://bnbong.atlassian.net/l/cp/sX14rBrG)
-- [About Bot (Confluence Document For me)](https://bnbong.atlassian.net/wiki/spaces/KWB/overview)
-- [API Documentation]()
+- [About Bot (Confluence Document For development)](https://bnbong.atlassian.net/wiki/spaces/KWB/overview)
+- [API Documentation(will be added later)]()
 
 ## Project Management
 
