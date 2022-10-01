@@ -12,6 +12,19 @@ Add WeatherToday Bot KakaoTalk channel [LINK(will be added later)]()
 - [About Bot (Confluence Document For development)](https://bnbong.atlassian.net/wiki/spaces/KWB/overview)
 - [API Documentation(will be added later)]()
 
+## Environments
+
+ - Database : PostgreSQL 13.3 with Docker
+ - Server : Ubuntu 20.04.5 LTS with Nginx
+ - Docker : Docker version 20.10.18 build b40c2f6
+ - Language : Python 3.10.7
+ - Framework : FastAPI with Python
+ - Dependents : [Link of Dependents(.gitignore file)]()
+ - API References : 공공데이터포털 - [기상청_단기예보_조회서비스](https://www.data.go.kr/data/15084084/openapi.do)
+ - KakaoTalk Channel : [Link]()
+ - Versioning & Issue Managing: git & Github
+ - CI/CD : will be added later
+
 ## Project Management
 
 - [JIRA Page](https://bnbong.atlassian.net/jira/software/projects/KWB/boards/1)
