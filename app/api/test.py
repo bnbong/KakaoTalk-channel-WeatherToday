@@ -119,7 +119,7 @@ class TestOuterAPI():
 
 
 class TestInnerAPI():
-    from ..apps.test_session_maker import client
+    from ..db.test_session_maker import client
 
 
     def test_end_point_router(self):
