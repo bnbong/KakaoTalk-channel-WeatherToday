@@ -1,3 +1,4 @@
+# TODO: make Kakao Bot channel skills and link it.
 from fastapi import APIRouter, Header
 from fastapi.responses import RedirectResponse
 
