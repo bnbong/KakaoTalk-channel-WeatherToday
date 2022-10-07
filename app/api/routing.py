@@ -1,5 +1,5 @@
 # TODO: make Kakao Bot channel skills and link it.
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 
 from enum import Enum
@@ -8,8 +8,13 @@ from datetime import date
 
 from dotenv import load_dotenv
 
+from sqlalchemy.orm import Session
+
 from ..apps.xlsx_reader import XlsxReader
 from ..apps.converter import ForecastDataTrimmer
+
+from ..db.database import SessionLocal
+from ..db import models, crud, schemas
 
 import os
 import requests
@@ -18,6 +23,15 @@ import requests
 load_dotenv()
 
 router = APIRouter()
+
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def get_weather_data(request_data):
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
@@ -94,3 +108,11 @@ def edit_user_time():
     # the end point router which kakao bot's skill uses.
     # change forecasting time via message.
     pass
+
+@router.post('/create_kakao_user', response_model=schemas.KakaoUser)
+def create_kakao_user(user: schemas.KakaoUserCreate, db: Session = Depends(get_db)):
+    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    if db_user:
+        raise HTTPException(status_code=400, detail="User already exists.")
+    
+    return crud.create_kakao_user(db=db, user=user)
