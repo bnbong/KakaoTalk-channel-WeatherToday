@@ -22,7 +22,7 @@ Add WeatherToday Bot KakaoTalk channel [LINK(will be added later)]()
  - Dependents : [Link of Dependents(.gitignore file)]()
  - API References : 공공데이터포털 - [기상청_단기예보_조회서비스](https://www.data.go.kr/data/15084084/openapi.do)
  - KakaoTalk Channel : [Link]()
- - Versioning & Issue Managing: git & Github
+ - Versioning & Issue Managing: git & Github, Slack
  - CI/CD : will be added later
 
 ## Project Management
