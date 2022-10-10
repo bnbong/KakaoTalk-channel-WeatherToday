@@ -1,27 +1,31 @@
 from pydantic import BaseModel
 
 
-class KakaoChannelUserBase(BaseModel):
-    user_id: str
-
-
-class KakaoChannelUser(KakaoChannelUserBase):
-    id: int
-    user_time: str
+class KakaoUserBase(BaseModel):
     user_location_first: str
     user_location_second: str | None = None
     user_location_third: str | None = None
 
+
+class KakaoUser(KakaoUserBase):
+    id: int
+    user_name: str
+    user_time: str
+    is_active: bool
+    
     class Config:
         orm_mode = True
 
 
-class KakaoChannelUserLocation(KakaoChannelUserBase):
-    location_first: str
-    location_second: str | None = None
-    location_third: str | None = None
+class KakaoUserCreate(KakaoUserBase):
+    user_name: str
+    user_time: str
 
 
-class KakaoChannelUserChangeTime(KakaoChannelUserBase):
+class KakaoUserChangeTime(KakaoUserBase):
     time_to_change: str
+
+
+class KakaoUserChangeLocal():
+    pass
 
