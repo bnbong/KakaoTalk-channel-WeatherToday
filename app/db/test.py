@@ -18,5 +18,25 @@ class TestDatabase():
 
     def test_could_add_new_kakao_user(self):
         response = self.client.post('/api/v1/create_kakao_user', json={"user_name":"TestUser", "user_time":"0630", "user_location_first":"TestLocation1"})
-        print(response.status_code)
-        print(response.json())
+        
+        assert 400 == (response.status_code)
+        assert "User already exists." == (response.json().get('detail'))
+
+    def test_could_get_kakao_user(self):
+        response = self.client.get('/api/v1/get_kakao_user', json={"user_name":"TestUser"})
+        json_response = response.json()
+
+        assert 200 == (response.status_code)
+        assert "TestUser" == (json_response.get('user_name'))
+        assert "TestLocation1" == (json_response.get('user_location_first'))
+        assert None == (json_response.get('user_location_second'))
+        assert None == (json_response.get('user_location_third'))
+        assert "0630" == (json_response.get('user_time'))
+        assert True == (json_response.get('is_active'))
+
+    def test_could_change_user_location(self):
+        pass
+
+    def test_could_change_user_time(self):
+        pass
+

@@ -15,3 +15,6 @@ def create_kakao_user(db: Session, user: schemas.KakaoUserCreate):
     db.refresh(new_user)
 
     return new_user
+
+def edit_user_location(db: Session, user: schemas.KakaoGetUser):
+    pass
