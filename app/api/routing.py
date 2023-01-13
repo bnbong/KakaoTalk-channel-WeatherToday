@@ -97,22 +97,37 @@ def get_daily_forecast():
 
     return message
 
-@router.post('/edit-user-location')
-def edit_user_info():
+@router.put('/edit-user-location')
+def edit_user_info(data: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting location via message.
-    pass
+    db_user = crud.get_kakao_user(db, user_name=data.user_name)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User Not Exists.")
+    
+    return crud.edit_user_location(db=db, data=data)
 
-@router.post('/edit-user-time')
+@router.put('/edit-user-time')
 def edit_user_time():
     # the end point router which kakao bot's skill uses.
     # change forecasting time via message.
     pass
 
-@router.post('/create_kakao_user', response_model=schemas.KakaoUser)
+@router.post('/create-kakao-user', response_model=schemas.KakaoUser)
 def create_kakao_user(user: schemas.KakaoUserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_kakao_user(db, user_name=user.user_name)
     if db_user:
         raise HTTPException(status_code=400, detail="User already exists.")
     
     return crud.create_kakao_user(db=db, user=user)
+
+@router.get('/get-kakao-user', response_model=schemas.KakaoUser)
+def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
+    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+
+    return db_user
+
+@router.get('/get-kakao-users', response_model=schemas.KakaoUser)
+def get_kakao_users(db: Session = Depends(get_db)):
+    
+    return crud.get_kakao_users(db)

@@ -37,6 +37,7 @@ class ForecastDataTrimmer():
                 self.reh_calculator(fcstValue)
 
     def pcp_calculator(self, value):
+        value = value[:-2]
         if value == "강수없음":
             self.weather_value = value
         elif float(value) < (float)(1.0):

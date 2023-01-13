@@ -16,3 +16,8 @@ class TestUtil():
         result = self.xlsx_pointer.filter_xlsx_data(filter_data)
 
         assert 62 == (result[0])
+
+    def test_could_convert_pcp_value(self):
+        test_value = '20.0mm'
+
+        assert '20.0' == (test_value[:-2])

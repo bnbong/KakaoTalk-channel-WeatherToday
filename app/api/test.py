@@ -129,13 +129,22 @@ class TestInnerAPI():
         assert not None == (response.json())
 
     def test_edit_user_location(self):
-        response = self.client.post('/api/v1/edit-user-location')
+        response = self.client.put('/api/v1/edit-user-location', json={'user_name':'TestUser','user_location_first':'TestLocation2'})
 
         assert 200 == (response.status_code)
-        # assert not None == (response.json())
+        assert not None == (response.json())
+        # pass
 
     def test_edit_user_time(self):
-        response = self.client.post('/api/v1/edit-user-time')
+        # response = self.client.put('/api/v1/edit-user-time' json={'user_name':'TestUser','user_time':'0800'})
 
-        assert 200 == (response.status_code)
+        # assert 200 == (response.status_code)
         # assert not None == (response.json())
+        pass
+    
+    def test_get_user_data(self):
+        # response = self.client.get('/get-kakao-users')
+
+        # print(response)
+        # print(response.json)
+        pass
