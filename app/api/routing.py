@@ -127,7 +127,7 @@ def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
 
     return db_user
 
-@router.get('/get-kakao-users', response_model=schemas.KakaoUser)
+@router.get('/get-kakao-users')
 def get_kakao_users(db: Session = Depends(get_db)):
     
     return crud.get_kakao_users(db)

@@ -1,4 +1,4 @@
-# 수정 필요 : test 용도로 만들어진 test.db 에 데이터가 저장되는 것이 아닌 postgresql 컨테이너에 있는 db에 값이 저장되는 것으로 보임.
+# TODO: refactor after complete testcases.
 
 class TestDatabase():
     from .test_session_maker import client, TestingSessionLocal
@@ -6,7 +6,7 @@ class TestDatabase():
 
     from sqlalchemy.exc import InvalidRequestError, IntegrityError
 
-
+    
     @classmethod
     def setup_class(cls):
         try:
@@ -22,9 +22,16 @@ class TestDatabase():
     def teardown_class(cls):
         try:
             db = cls.TestingSessionLocal()
+            test_user = db.query(cls.models.KakaoChannelUser).first()
+            test_user.user_location_first = "TestLocation0"
+            test_user.user_location_second = None
+            test_user.user_location_third = None
+            
             target_user = db.query(cls.models.KakaoChannelUser).filter(cls.models.KakaoChannelUser.user_name == "TestUser1").first()
+
             db.delete(target_user)
             db.commit()
+            db.refresh(test_user)
 
         except cls.InvalidRequestError:
             print("User has already deleted.")
@@ -55,11 +62,57 @@ class TestDatabase():
         assert True == (query.is_active)
     
     def test_should_testcase_will_not_touch_main_db(self):
-        pass
+        db = self.TestingSessionLocal()
+        query = db.query(self.models.KakaoChannelUser).all()
 
-    def test_could_change_user_location(self):
-        pass
+        test_request = self.client.get('/api/v1/get-kakao-users')
+
+        assert 2 == (len(query))
+        assert "TestUser0" == query[0].user_name 
+        assert query[0].user_name != test_request.json()[0].get('user_name')
+        assert query[0].user_time != test_request.json()[0].get('user_time')
+        assert "TestUser1" == query[1].user_name
+
+    def test_could_change_user_location_edit_existing_one(self):
+        db = self.TestingSessionLocal()
+        selected_user = db.query(self.models.KakaoChannelUser).first()
+
+        assert "TestLocation0" == (selected_user.user_location_first)
+
+        selected_user.user_location_first = "NewLocation1"
+
+        db.commit()
+        db.refresh(selected_user)
+
+        query = db.query(self.models.KakaoChannelUser).first()
+
+        assert "NewLocation1" == (query.user_location_first)
+        assert "TestLocation0" != (query.user_location_first)
+        assert None == (query.user_location_second)
+
+    def test_could_change_user_location_add_new_one(self):
+        db = self.TestingSessionLocal()
+        selected_user = db.query(self.models.KakaoChannelUser).first()
+
+        assert None == (selected_user.user_location_second)
+
+        selected_user.user_location_second = "NewLocation2"
+
+        query = db.query(self.models.KakaoChannelUser).first()
+
+        assert "NewLocation1" == (query.user_location_first)
+        assert "NewLocation2" == (query.user_location_second)
+        assert None == (query.user_location_third)
 
     def test_could_change_user_time(self):
-        pass
+        db = self.TestingSessionLocal()
+        selected_user = db.query(self.models.KakaoChannelUser).first()
 
+        assert "0800" == (selected_user.user_time)
+
+        selected_user.user_time = "1230"
+
+        query = db.query(self.models.KakaoChannelUser).first()
+
+        assert "0800" != (query.user_time)
+        assert "1230" == (query.user_time)
