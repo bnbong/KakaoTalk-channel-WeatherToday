@@ -41,7 +41,7 @@ class TestDatabase():
         new_user = self.schemas.KakaoUserCreate(user_name=user_data.get("user_name"), user_time=user_data.get("user_time"), user_location_first=user_data.get("user_location_first"))
 
         db = self.TestingSessionLocal()
-        self.crud.create_kakao_user(db=db, user=new_user)
+        self.crud.create_kakao_user(db=db, data=new_user)
 
         query = db.query(self.models.KakaoChannelUser).all()
 

@@ -97,21 +97,25 @@ def get_daily_forecast():
 
     return message
 
-@router.put('/edit-user-location')
-def edit_user_info(data: schemas.KakaoGetUser, db: Session = Depends(get_db)):
+@router.put('/edit-user-location', response_model=schemas.KakaoUser)
+def edit_user_info(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting location via message.
-    db_user = crud.get_kakao_user(db, user_name=data.user_name)
+    db_user = crud.get_kakao_user(db, user_name=user.user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
     
-    return crud.edit_user_location(db=db, data=data)
+    return crud.edit_user_location(db=db, data=user)
 
-@router.put('/edit-user-time')
-def edit_user_time():
+@router.put('/edit-user-time', response_model=schemas.KakaoUser)
+def edit_user_time(user: schemas.KakaoUserCreate, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting time via message.
-    pass
+    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User Not Exists.")
+
+    return crud.edit_user_time(db=db, data=user)
 
 @router.post('/create-kakao-user', response_model=schemas.KakaoUser)
 def create_kakao_user(user: schemas.KakaoUserCreate, db: Session = Depends(get_db)):
@@ -119,7 +123,7 @@ def create_kakao_user(user: schemas.KakaoUserCreate, db: Session = Depends(get_d
     if db_user:
         raise HTTPException(status_code=400, detail="User already exists.")
     
-    return crud.create_kakao_user(db=db, user=user)
+    return crud.create_kakao_user(db=db, data=user)
 
 @router.get('/get-kakao-user', response_model=schemas.KakaoUser)
 def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
@@ -131,3 +135,11 @@ def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
 def get_kakao_users(db: Session = Depends(get_db)):
     
     return crud.get_kakao_users(db)
+
+@router.delete('/delete-kakao-user')
+def delete_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
+    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User Not Exists.")
+
+    return crud.delete_kakao_user(db=db, data=db_user)

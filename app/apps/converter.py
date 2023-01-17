@@ -1,3 +1,5 @@
+# TODO: make converter more specific.
+
 class ForecastDataTrimmer():
 
     def __init__(self):
@@ -37,17 +39,18 @@ class ForecastDataTrimmer():
                 self.reh_calculator(fcstValue)
 
     def pcp_calculator(self, value):
-        value = value[:-2]
         if value == "강수없음":
             self.weather_value = value
-        elif float(value) < (float)(1.0):
-            self.weather_value = "1.0mm 미만"
-        elif float(value) < (float)(30.0):
-            self.weather_value = "1.0 ~ 29.0mm"
-        elif float(value) < (float)(50.0):
-            self.weather_value = "30.0 ~ 50.0mm"
         else:
-            self.weather_value = "50.0mm 이상"
+            value = value[:-2]
+            if float(value) < (float)(1.0):
+                self.weather_value = "1.0mm 미만"
+            elif float(value) < (float)(30.0):
+                self.weather_value = "1.0 ~ 29.0mm"
+            elif float(value) < (float)(50.0):
+                self.weather_value = "30.0 ~ 50.0mm"
+            else:
+                self.weather_value = "50.0mm 이상"
 
     def sno_calculator(self, value):
         if value == "적설없음":

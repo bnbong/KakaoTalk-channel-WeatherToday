@@ -115,36 +115,85 @@ class TestOuterAPI():
         assert not None == (message)
 
     def test_could_get_user_id_from_message(self):
+        # This testcase will be completed after linking Kakao Channel skill.
         pass
 
 
 class TestInnerAPI():
     from ..db.test_session_maker import client
 
+    @classmethod
+    def setup_class(cls):
+        from ..db.database import SessionLocal
+        from ..db import models
+
+        try:
+            db = SessionLocal()
+            target_user = db.query(models.KakaoChannelUser).filter(models.KakaoChannelUser.user_name == "NewUser1")
+            if target_user:
+                db.delete(target_user)
+                db.commit()
+                db.close()
+        except:
+            pass
 
     def test_end_point_router(self):
         response = self.client.post('/api/v1/get-daily-forecast')
 
         assert 200 == (response.status_code)
         assert not None == (response.json())
-
-    def test_edit_user_location(self):
-        response = self.client.put('/api/v1/edit-user-location', json={'user_name':'TestUser','user_location_first':'TestLocation2'})
+    
+    def test_create_kakao_user(self):
+        response = self.client.post('/api/v1/create-kakao-user', json={'user_name':'NewUser1', 'user_time':'1200', 'user_location_first':'NewLocation1'})
 
         assert 200 == (response.status_code)
         assert not None == (response.json())
-        # pass
+        assert "NewUser1" == (response.json().get('user_name'))
+        assert "1200" == (response.json().get('user_time'))
+        assert "NewLocation1" == (response.json().get('user_location_first'))
+        assert None == (response.json().get('user_location_second'))
+
+    def test_get_kakao_user_data(self):
+        response = self.client.get('/api/v1/get-kakao-user', json={'user_name':'NewUser1'})
+
+        assert 200 == (response.status_code)
+        assert not None == (response.json())
+        assert "1200" == (response.json().get('user_time'))
+        assert "NewLocation1" == (response.json().get('user_location_first'))
+        assert None == (response.json().get('user_location_second'))
+
+    def test_edit_user_location(self):
+        response = self.client.put('/api/v1/edit-user-location', json={'user_name':'NewUser1','user_location_first':'NewLocation2'})
+
+        assert 200 == (response.status_code)
+        assert not None == (response.json())
+        assert not "NewLocation1" == (response.json().get('user_location_first'))
+        assert "NewLocation2" == (response.json().get('user_location_first'))
 
     def test_edit_user_time(self):
-        # response = self.client.put('/api/v1/edit-user-time' json={'user_name':'TestUser','user_time':'0800'})
+        response = self.client.put('/api/v1/edit-user-time', json={'user_name':'NewUser1','user_time':'0800'})
 
-        # assert 200 == (response.status_code)
-        # assert not None == (response.json())
-        pass
+        assert 200 == (response.status_code)
+        assert not None == (response.json())
+        assert not "1200" == (response.json().get('user_time'))
+        assert "0800" == (response.json().get('user_time'))
     
-    def test_get_user_data(self):
-        # response = self.client.get('/get-kakao-users')
+    def test_get_kakao_users(self):
+        response = self.client.get('/api/v1/get-kakao-users')
 
-        # print(response)
-        # print(response.json)
-        pass
+        assert 200 == (response.status_code)
+        assert "TestUser" == (response.json()[0].get('user_name'))
+
+    def test_delete_kakao_user(self):
+        before_delete = self.client.get('/api/v1/get-kakao-users')
+
+        assert 3 == (len(before_delete.json()))
+
+        response = self.client.delete('/api/v1/delete-kakao-user', json={'user_name':'NewUser1'})
+
+        assert 200 == (response.status_code)
+        assert "User successfully deleted." == (response.json())
+
+        after_delete = self.client.get('/api/v1/get-kakao-users')
+
+        assert 2 == (len(after_delete.json()))
