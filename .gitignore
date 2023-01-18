@@ -2,6 +2,6 @@ app/KakaoWeatherBotvenv/
 app/.env
 .pytest_cache
 __pycache__
-*.xlsx
-*.docx
+# *.xlsx
+# *.docx
 *.db
