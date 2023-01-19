@@ -10,11 +10,11 @@ from dotenv import load_dotenv
 
 from sqlalchemy.orm import Session
 
-from ..apps.xlsx_reader import XlsxReader
-from ..apps.converter import ForecastDataTrimmer
+from apps.xlsx_reader import XlsxReader
+from apps.converter import ForecastDataTrimmer
 
-from ..db.database import SessionLocal
-from ..db import models, crud, schemas
+from db.database import SessionLocal
+from db import crud, schemas
 
 import os
 import requests
@@ -43,6 +43,12 @@ def get_weather_data(request_data):
 
 def get_body_items_from_raw_request(data):
     response = data.get('body').get('items').get('item')
+
+    return response
+
+@router.get('/')
+def get_test_response():
+    response = 'this is test api'
 
     return response
 
