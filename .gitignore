@@ -5,3 +5,4 @@ __pycache__
 # *.xlsx
 # *.docx
 *.db
+logs/
