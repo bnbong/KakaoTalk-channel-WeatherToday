@@ -8,10 +8,9 @@ class KakaoUserBase(BaseModel):
 
 
 class KakaoUser(KakaoUserBase):
-    id: int
     user_name: str
-    user_time: str
-    is_active: bool
+    user_time: str | None = "0800"
+    is_active: bool | None = True
     
     class Config:
         orm_mode = True
@@ -20,9 +19,5 @@ class KakaoGetUser(KakaoUserBase):
     user_name: str
 
 
-class KakaoUserCreate(KakaoGetUser):
+class KakaoUserTime(KakaoGetUser):
     user_time: str
-
-
-class KakaoUserChangeTime(KakaoUserBase):
-    time_to_change: str
