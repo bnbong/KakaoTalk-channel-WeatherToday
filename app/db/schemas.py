@@ -26,8 +26,3 @@ class KakaoUserCreate(KakaoGetUser):
 
 class KakaoUserChangeTime(KakaoUserBase):
     time_to_change: str
-
-
-class KakaoUserChangeLocal():
-    pass
-

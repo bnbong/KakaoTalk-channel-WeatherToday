@@ -1,9 +1,6 @@
 # TODO: make Kakao Bot channel skills and link it.
-from fastapi import APIRouter, Header, HTTPException, Depends
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, HTTPException, Depends
 
-from enum import Enum
-from typing import Optional, Union
 from datetime import date
 
 from dotenv import load_dotenv
@@ -11,10 +8,11 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
 from apps.xlsx_reader import XlsxReader
+from apps.user_data_trimmer import UserDataTrimmer
 from apps.converter import ForecastDataTrimmer
 
-from db.database import SessionLocal
 from db import crud, schemas
+from db.database import SessionLocal
 
 import os
 import requests
@@ -23,7 +21,6 @@ import requests
 load_dotenv()
 
 router = APIRouter()
-
 
 # Dependency
 def get_db():
@@ -37,14 +34,25 @@ def get_weather_data(request_data):
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
     
     response = requests.get(url, params=request_data)
-    response_weather_data_json = response.json().get('response')
+    response_weather_data = response.json().get('response')
 
-    return response_weather_data_json
+    if response_weather_data.get('header').get('resultCode') != '00':
+        if response_weather_data.get('header').get('resultMsg') == "NO_DATA":
+            msg = request_data
+            return msg, response.json(), "We got wrong request values :("
+    
+    else:
+        response_json = response_weather_data.get('body').get('items').get('item')
+        message = []
 
-def get_body_items_from_raw_request(data):
-    response = data.get('body').get('items').get('item')
+        for item in response_json:
+            item_pointer = ForecastDataTrimmer()
+            item_pointer.category_converter(item)
 
-    return response
+            if item_pointer.weather_value is not None:
+                message.append(item_pointer.weather_value)
+
+        return message
 
 @router.get('/')
 def get_test_response():
@@ -53,31 +61,43 @@ def get_test_response():
     return response
 
 @router.post('/get-daily-forecast')
-def get_daily_forecast():
+def get_daily_forecast(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     serviceKey = os.getenv('WEATHER_SECRET_KEY_DECODED')
     target_date = date.today().__format__("%Y%m%d")
-    numOfRows = '14'
+    numOfRows = '10'
 
-    user_detailed_location_json = {} # code goes here.
-    nx, ny = XlsxReader().filter_xlsx_data(user_detailed_location_json)
+    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User Not Exists.")
+    
+    user_detailed_location_json = UserDataTrimmer().convert_user_locations_into_readable_data(db_user.user_location_first, db_user.user_location_second, db_user.user_location_third) # code goes here.
+    try:
+        nx, ny = XlsxReader().filter_xlsx_data(user_detailed_location_json)
+        nx, ny = str(nx), str(ny)
+    except IndexError as e:
+        # if location cannot found at xlsx db, default location will be set at Seoul.
+        nx, ny = '61', '126'
 
-    user_preferred_time = '0500' # code goes here.
+    user_preferred_time = db_user.user_time # code goes here.
+    user_preferred_time = str(user_preferred_time) # 유저가 원하는 알람 시간이므로 API param에 포함되지 않는다. 나중에 skill관련으로 제공될예정.
 
-    # default location set to Gangnam
+    # base time possible setting values = 0200 0500 0800 1100 1400 1700 2000 2300
+    # API 제공 시간은 각 base time values += 10분
+
+    # default location set to Seoul
     request_data = {
         'serviceKey' : serviceKey,
         'numOfRows' : numOfRows,
         'pageNo' : '1',
         'dataType' : 'JSON',
         'base_date' : target_date,
-        'base_time' : user_preferred_time, # change user's info - user_time col
-        'nx' : nx, # change user's info - using with user_location_first, etc.. col
-        'ny' : ny # change user's info - using with user_location_first, etc.. col
+        'base_time' : '0200', # base time 중 오늘 날씨까지 제공되는 base time 은 0200 이 유일해보임. (오늘, 내일, 모레 날씨 제공)
+        'nx' : nx,
+        'ny' : ny
     }
 
     response = get_weather_data(request_data)
-    json_response = get_body_items_from_raw_request(response)
     """
         API가 제공하는 날씨 데이터 정보
         value of the key 'item' is list.
@@ -92,16 +112,8 @@ def get_daily_forecast():
         SKY - 하늘상태
         SNO - 적설양
     """
-    message = []
-
-    for item in json_response:
-        item_pointer = ForecastDataTrimmer()
-        item_pointer.category_converter(item)
-
-        if item_pointer.weather_value is not None:
-            message.append(item_pointer.weather_value)
-
-    return message
+    
+    return response
 
 @router.put('/edit-user-location', response_model=schemas.KakaoUser)
 def edit_user_info(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):

@@ -2,13 +2,12 @@ from fastapi import FastAPI
 
 from db.database import engine
 
-from api import routing
+from api.routing import router
 from db import models
 
-from fastapi import FastAPI
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
-app.include_router(routing.router, prefix='/api/v1')
+app.include_router(router, prefix='/api/v1')

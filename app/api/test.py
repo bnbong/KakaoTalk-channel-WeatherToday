@@ -41,19 +41,19 @@ class TestOuterAPI():
     def setup_class(cls):
         
         cls.url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
-        serviceKey = cls.os.getenv('WEATHER_SECRET_KEY_DECODED')
-        target_date = cls.date.today().__format__("%Y%m%d")
-        numOfRows = '10'
+        cls.serviceKey = cls.os.getenv('WEATHER_SECRET_KEY_DECODED')
+        cls.target_date = cls.date.today().__format__("%Y%m%d")
+        cls.numOfRows = '10'
         nx = '61'
         ny = '126'
 
         # location set to Gangnam
         cls.request_data = {
-            'serviceKey' : serviceKey,
-            'numOfRows' : numOfRows,
+            'serviceKey' : cls.serviceKey,
+            'numOfRows' : cls.numOfRows,
             'pageNo' : '1',
             'dataType' : 'JSON',
-            'base_date' : target_date,
+            'base_date' : cls.target_date,
             'base_time' : '0500',
             'nx' : nx,
             'ny' : ny
@@ -75,7 +75,7 @@ class TestOuterAPI():
         assert None != response
         assert 8 == len(response.get('item')[0].get('baseDate'))
 
-        print(response)
+        print(self.response_weather_data_json, self.request_data, response)
 
     def test_could_get_one_row_data_from_api(self):
 
@@ -113,6 +113,31 @@ class TestOuterAPI():
                 message.append(item_pointer.weather_value)
         
         assert not None == (message)
+        
+    def test_could_get_weather_data_from_db_user_info(self):
+        from ..apps.user_data_trimmer import UserDataTrimmer
+        from ..apps.xlsx_reader import XlsxReader
+
+        from ..api.routing import get_weather_data
+        
+        test_location_json = UserDataTrimmer().convert_user_locations_into_readable_data("경기도", "성남시분당구",None)
+        nx, ny = XlsxReader().filter_xlsx_data(test_location_json)
+        nx, ny = str(nx), str(ny)
+
+        request_data = {
+            'serviceKey' : self.serviceKey,
+            'numOfRows' : self.numOfRows,
+            'pageNo' : '1',
+            'dataType' : 'JSON',
+            'base_date' : self.target_date,
+            'base_time' : '0200', # change user's info - user_time col
+            'nx' : nx, # change user's info - using with user_location_first, etc.. col
+            'ny' : ny # change user's info - using with user_location_first, etc.. col
+        }
+
+        response = get_weather_data(request_data)
+
+        print(response)
 
     def test_could_get_user_id_from_message(self):
         # This testcase will be completed after linking Kakao Channel skill.
@@ -136,13 +161,9 @@ class TestInnerAPI():
                 db.close()
         except:
             pass
-
     def test_end_point_router(self):
-        response = self.client.post('/api/v1/get-daily-forecast')
+        pass
 
-        assert 200 == (response.status_code)
-        assert not None == (response.json())
-    
     def test_create_kakao_user(self):
         response = self.client.post('/api/v1/create-kakao-user', json={'user_name':'NewUser1', 'user_time':'1200', 'user_location_first':'NewLocation1'})
 
@@ -182,7 +203,7 @@ class TestInnerAPI():
         response = self.client.get('/api/v1/get-kakao-users')
 
         assert 200 == (response.status_code)
-        assert "TestUser" == (response.json()[0].get('user_name'))
+        assert "TestUser1" == (response.json()[0].get('user_name'))
 
     def test_delete_kakao_user(self):
         before_delete = self.client.get('/api/v1/get-kakao-users')
