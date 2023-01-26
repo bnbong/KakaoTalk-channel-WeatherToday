@@ -6,13 +6,10 @@ class KakaoChannelUser(Base):
     __tablename__ = "kakao_channel_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_name = Column(String(50), unique=True)
+    
+    user_name = Column(String(200), unique=True)
     user_time = Column(String(50), default="0800")
+    user_location = Column(String(50), default='서울특별시')
+
     is_active = Column(Boolean, default=True)
 
-    user_location_first = Column(String(50))
-    user_location_second = Column(String(50), nullable=True)
-    user_location_third = Column(String(50), nullable=True)
-
-    nx = Column(Integer, default=61)
-    ny = Column(Integer, default=126)

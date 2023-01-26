@@ -2,9 +2,7 @@ from pydantic import BaseModel
 
 
 class KakaoUserBase(BaseModel):
-    user_location_first: str | None = None
-    user_location_second: str | None = None
-    user_location_third: str | None = None
+    user_location: str | None = "서울특별시"
 
 
 class KakaoUser(KakaoUserBase):

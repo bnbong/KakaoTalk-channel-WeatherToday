@@ -1,21 +1,18 @@
 # TODO: make Kakao Bot channel skills and link it.
 from fastapi import APIRouter, HTTPException, Depends, Request
 
-from datetime import date
-
 from dotenv import load_dotenv
 
 from sqlalchemy.orm import Session
 
-from apps.xlsx_reader import XlsxReader
-from apps.user_data_trimmer import UserDataTrimmer
-from apps.converter import ForecastDataTrimmer
+from apps.converter import WeatherForecastTrimmer
 
 from db import crud, schemas
 from db.database import SessionLocal
 
 import os
 import requests
+import json
 
 
 load_dotenv()
@@ -31,32 +28,39 @@ def get_db():
         db.close()
 
 def get_weather_data(request_data):
-    url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
-    
+    city_name = request_data.get('city_name')
+    api_key = request_data.get('api_key')
+    url = f'https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=kr'
+
+
+    # try:       
+    #     response = requests.get(url, params=request_data)
+
+    #     if response.json().get('cod') != 200:
+    #         message = "Error! Cannot get Weather Data."
+
+    #         return {"detail" : message}
+
+    #     return get_ultimate_weather_data(json_response=response.json())
+
+    # except:
+    #     message = "Unknown Server Error has occurred!, please contact ME (bbbong9@gmail.com)"
+
+    #     return {"detail" : message}
     response = requests.get(url, params=request_data)
+
+    if response.json().get('cod') != 200:
+        message = "Error! Cannot get Weather Data."
+
+        return {"detail" : message}
 
     return get_ultimate_weather_data(json_response=response.json())
 
 def get_ultimate_weather_data(json_response):
-    response_header = json_response.get('response').get('header')
+    #TODO: edit this code.
+    message = WeatherForecastTrimmer(json_response).weather_trimmed_data_json
 
-    if response_header.get('resultCode') != '00':
-        if response_header.get('resultMsg') == "NO_DATA":
-            return json_response.json(), "We got wrong request values :("
-    
-    else:
-        json_response = json_response.get('response').get('body').get('items').get('item')
- 
-        message = []
-
-        for item in json_response:
-            item_pointer = ForecastDataTrimmer()
-            item_pointer.category_converter(item)
-            
-            if item_pointer.weather_value is not None:
-                message.append(item_pointer.weather_value)
-
-        return message
+    return message
 
 @router.get('/')
 def get_test_response():
@@ -111,9 +115,7 @@ async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
     #   }
     # }
 
-    serviceKey = os.getenv('WEATHER_SECRET_KEY_DECODED')
-    target_date = date.today().__format__("%Y%m%d")
-    numOfRows = '10'
+    api_key = os.getenv('WEATHER_API_KEY')
 
     request_data = await request.json()
 
@@ -126,47 +128,19 @@ async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
     # user_preferred_time = db_user.user_time # code goes here.
     # user_preferred_time = str(user_preferred_time) # 유저가 원하는 알람 시간이므로 API param에 포함되지 않는다. 나중에 skill관련으로 제공될예정.
 
-    # base time possible setting values = 0200 0500 0800 1100 1400 1700 2000 2300
     # API 제공 시간은 각 base time values += 10분
 
-    # default location set to Seoul
+    # default location set to Seoul when user_location is not defined.
     request_data = {
-        'serviceKey' : serviceKey,
-        'numOfRows' : numOfRows,
-        'pageNo' : '1',
-        'dataType' : 'JSON',
-        'base_date' : target_date,
-        'base_time' : '0200', # base time 중 오늘 날씨까지 제공되는 base time 은 0200 이 유일해보임. (오늘, 내일, 모레 날씨 제공)
-        'nx' : db_user.nx,
-        'ny' : db_user.ny
+        'api_key' : api_key,
+        'city_name' : db_user.user_location
     }
 
     response = get_weather_data(request_data)
-    """
-        API가 제공하는 날씨 데이터 정보
-        value of the key 'item' is list.
-        
-        TMN - 일 최저 기온
-        TMX - 일 최고 기온
-        POP - 강수확률
-        PTY - 강수형태
-        PCP - 1시간 강수량
-        REH - 습도
-        WSD - 풍속
-        SKY - 하늘상태
-        SNO - 적설양
-    """
-    
-    response = {
-        "풍속" : response[0],
-        "하늘 상태" : response[1],
-        "강수 확률" : response[2],
-        "현재 강수 상태" : response[3]
-    }
     
     return response
 
-@router.put('/edit-user-location', response_model=schemas.KakaoUser)
+@router.post('/edit-user-location', response_model=schemas.KakaoUser)
 def edit_user_info(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting location via message.
@@ -176,7 +150,7 @@ def edit_user_info(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     
     return crud.edit_user_location(db=db, data=user)
 
-@router.put('/edit-user-time', response_model=schemas.KakaoUser)
+@router.post('/edit-user-time', response_model=schemas.KakaoUser)
 def edit_user_time(user: schemas.KakaoUserTime, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting time via message.
@@ -187,12 +161,32 @@ def edit_user_time(user: schemas.KakaoUserTime, db: Session = Depends(get_db)):
     return crud.edit_user_time(db=db, data=user)
 
 @router.post('/create-kakao-user', response_model=schemas.KakaoUser)
-def create_kakao_user(user: schemas.KakaoUser, db: Session = Depends(get_db)):
-    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+async def create_kakao_user(request: Request, db: Session = Depends(get_db)):
+    # db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    # if db_user:
+    #     raise HTTPException(status_code=400, detail="User already exists.")
+    request_data = await request.json()
+
+    user_name = request_data.get('userRequest').get('user').get('id')
+
+    db_user = crud.get_kakao_user(db, user_name=user_name)
     if db_user:
         raise HTTPException(status_code=400, detail="User already exists.")
     
+    user_location = request_data.get('action').get('params').get('user_location')
+    user_time_params = request_data.get('action').get('params').get('user_time')
+
+    user_time_json = json.loads(user_time_params)
+    user_time = user_time_json.get('time')
+
+    user = schemas.KakaoUser(user_name=user_name, user_location=user_location, user_time=user_time)
     return crud.create_kakao_user(db=db, data=user)
+
+@router.post('/check-city')
+async def check_city(request: Request):
+    request_data = await request.json()
+
+    return 
 
 @router.get('/get-kakao-user', response_model=schemas.KakaoUser)
 def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):

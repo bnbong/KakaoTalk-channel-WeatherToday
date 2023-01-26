@@ -1,58 +1,94 @@
-class TestUtil():
+import pytest
 
+
+class TestNewWeatherAPI():
+
+    def test_UTC_converter(self):
+        from datetime import datetime, timedelta
+
+        sunrise_time = '1674686390'
+        sunset_time = '1674722858'
+
+        sunrise_time = int(sunrise_time)
+        sunset_time = int(sunset_time)
+
+        sunrise_utc_format = datetime.utcfromtimestamp(sunrise_time)
+        sunrise_kst = sunrise_utc_format + timedelta(hours=9)
+        sunrise_kst_format = sunrise_kst.strftime('%H:%M:%S')
+
+        hour, minute, sec = sunrise_kst_format.split(':')
+
+        assert ("07", "39", "50") == (hour, minute, sec)
+        
+        sunset_utc_format = datetime.utcfromtimestamp(sunset_time)
+        sunset_kst = sunset_utc_format + timedelta(hours=9)
+        sunset_kst_format = sunset_kst.strftime('%H:%M:%S')
+
+        hour, minute, sec = sunset_kst_format.split(':')
+
+        assert ("17", "47", "38") == (hour, minute, sec)
+
+
+@pytest.mark.skip(reason="testing another api")
+class TestWeatherInfo():
+    
     @classmethod
     def setup_class(cls):
-        from .xlsx_reader import XlsxReader
-        from .user_data_trimmer import UserDataTrimmer
+        from .weather_info import WeatherInfo
 
-        cls.xlsx_pointer = XlsxReader()
-        cls.user_data_trimmer = UserDataTrimmer()
+        cls.weather_info = WeatherInfo()
 
-    def test_could_read_xlsx_file_to_json(self):
-        result = self.xlsx_pointer.get_all_xlsx_data()
+    def test_weather_is_too_cold(self):
+        # informs to get thick clothes.
+        pass
 
-        assert 60 == (result[0])
+    def test_weather_is_too_hot(self):
+        # informs to get thin clothes.
+        pass
 
-    def test_could_get_filtered_location_data_to_json(self):
-        filter_data = {"3단계":"백현동"}
-        result = self.xlsx_pointer.filter_xlsx_data(filter_data)
+    def test_weather_is_good(self):
+        # informs it's good to go picnic.
+        pass
 
-        assert 62 == (result[0])
+    def test_will_be_rain_today(self):
+        # informs pty, and to get umbrella and raincoat.
+        pass
 
-    def test_could_convert_pcp_value(self):
-        test_value = '20.0mm'
+    def test_will_be_snow_today(self):
+        # informs sno, and be care of frozen road when driving.
+        pass
 
-        assert '20.0' == (test_value[:-2])
+    def test_will_be_tstm_today(self):
+        # informs to be careful not to be fly.
+        pass
 
-    def test_could_get_formatted_location_data_from_db(self):
-        test_user_location_data = {'user_location_first':None, 'user_location_second':None, 'user_location_third':None}
+    def test_temperature_drops_hard(self):
+        # informs temperature drops hard, so be careful at clothes.
+        pass
 
-        result = self.user_data_trimmer.convert_user_locations_into_readable_data(test_user_location_data.get('user_location_first'), test_user_location_data.get('user_location_second'), test_user_location_data.get('user_location_third'))
+    def test_temperature_rises_hard(self):
+        # informs temperature rises hard, so be careful at clothes.
+        pass
+
+
+class TestMessageConverter():
+    
+    def test_could_convert_readable_weather_info_with_list(self):
+        # from ..apps.converter import ForecastDataTrimmer
+
+        # self.request_data.update({'numOfRows': '14'})
+        # response = self.requests.get(self.url, params=self.request_data)
+
+        # json_response = response.json().get('response').get('body').get('items').get('item')
+ 
+        # message = []
+
+        # for item in json_response:
+        #     item_pointer = ForecastDataTrimmer()
+        #     item_pointer.category_converter(item)
+            
+        #     if item_pointer.weather_value is not None:
+        #         message.append(item_pointer.weather_value)
         
-        assert {'1단계': '서울특별시'} == (result)
-
-        test_user_location_data = {'user_location_first':'부산광역시', 'user_location_second':None, 'user_location_third':None}
-
-        result = self.user_data_trimmer.convert_user_locations_into_readable_data(test_user_location_data.get('user_location_first'), test_user_location_data.get('user_location_second'), test_user_location_data.get('user_location_third'))
-        
-        assert {'1단계': '부산광역시'} == (result)
-
-        test_user_location_data = {'user_location_first':'경기도', 'user_location_second':'성남시분당구', 'user_location_third':None}
-
-        result = self.user_data_trimmer.convert_user_locations_into_readable_data(test_user_location_data.get('user_location_first'), test_user_location_data.get('user_location_second'), test_user_location_data.get('user_location_third'))
-        
-        assert {'2단계': '성남시분당구'} == (result)
-
-    def test_could_get_nx_ny_from_formatted_user_location_data(self):
-        test_user_location_data = {'user_location_first':'경기도', 'user_location_second':'성남시분당구', 'user_location_third':None}
-
-        detailed_location_json = self.user_data_trimmer.convert_user_locations_into_readable_data(test_user_location_data.get('user_location_first'), test_user_location_data.get('user_location_second'), test_user_location_data.get('user_location_third'))
-        
-        nx, ny = self.xlsx_pointer.filter_xlsx_data(detailed_location_json)
-
-        assert (62, 123) == (nx, ny)
-
-        nx, ny = str(nx), str(ny)
-
-        # cordinates value must be type string, because these values will be handled with json.
-        assert ('62', '123') == (nx, ny)
+        # assert not None == (message)
+        pass
