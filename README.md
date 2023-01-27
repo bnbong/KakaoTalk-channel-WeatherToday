@@ -10,7 +10,7 @@ Add WeatherToday Bot KakaoTalk channel [LINK(will be added later)]()
 
 - [About Bot (Confluence Document)](https://bnbong.atlassian.net/l/cp/sX14rBrG)
 - [About Bot (Confluence Document For development)](https://bnbong.atlassian.net/wiki/spaces/KWB/overview)
-- [API Documentation(will be added later)]()
+- [API Documentation(Auto created by FastAPI)](https://kwb-api.bnbong.tk/docs)
 
 ## Environments
 
