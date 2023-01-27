@@ -18,7 +18,7 @@ def create_kakao_user(db: Session, data: schemas.KakaoUser):
 
     return new_user
 
-def edit_user_location(db: Session, data: schemas.KakaoGetUser):
+def edit_user_location(db: Session, data: schemas.KakaoUserLocation):
     selected_user = db.query(models.KakaoChannelUser).filter(models.KakaoChannelUser.user_name == data.user_name).first()
     
     selected_user.user_location = data.user_location

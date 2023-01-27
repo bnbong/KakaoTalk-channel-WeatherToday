@@ -34,7 +34,7 @@ class WeatherForecastTrimmer():
             'name': 'Anyang-si', 
             'cod': 200
         }
-        """
+    """
     
     def __init__(self, data):
         self.weather_trimmed_data_json = {}
@@ -42,6 +42,8 @@ class WeatherForecastTrimmer():
         self.category_converter(data=data)
 
     def category_converter(self, data):
+        # self.weather_trimmed_data_json["도시 이름"] = data.get('name')
+
         weather_data = data.get('weather')
         main_data = data.get('main')
         visibility_data = data.get('visibility')
@@ -62,8 +64,8 @@ class WeatherForecastTrimmer():
         weather_status = weather_data[0].get('main')
         weather_detail = weather_data[0].get('description')
 
-        self.weather_trimmed_data_json["현재 날씨"] = weather_status
-        self.weather_trimmed_data_json["날씨 상세"] = weather_detail
+        self.weather_trimmed_data_json["weather_info"] = weather_status
+        self.weather_trimmed_data_json["weather_detail"] = weather_detail
 
     def convert_main(self, main_data):
         temp_now = main_data.get('temp')
@@ -71,24 +73,24 @@ class WeatherForecastTrimmer():
         temp_low = main_data.get('temp_min')
         feeling_temp = main_data.get('feels_like')
 
-        self.weather_trimmed_data_json["현재 온도"] = str(round(temp_now)) + " 도"
-        self.weather_trimmed_data_json["체감 온도"] = str(round(feeling_temp)) + " 도"
-        self.weather_trimmed_data_json["최고 온도(현재 시각으로부터 전후 3시간)"] = str(round(temp_high)) + " 도"
-        self.weather_trimmed_data_json["최저 온도(현재 시각으로부터 전후 3시간)"] = str(round(temp_low)) + " 도"
+        self.weather_trimmed_data_json["temperature"] = str(round(temp_now)) + " 도"
+        self.weather_trimmed_data_json["feeling_temperature"] = str(round(feeling_temp)) + " 도"
+        self.weather_trimmed_data_json["high_temperature"] = str(round(temp_high)) + " 도"
+        self.weather_trimmed_data_json["low_temperature"] = str(round(temp_low)) + " 도"
 
     def convert_visibility(self, visibility_data):
         #TODO: update km
-        self.weather_trimmed_data_json["가시 거리"] = str(visibility_data) + " 미터"
+        self.weather_trimmed_data_json["visibility"] = str(visibility_data) + " 미터"
 
     def convert_wind(self, wind_data):
         wind_speed = wind_data.get('speed')
         
-        self.weather_trimmed_data_json["풍속"] = "초속 " + str(wind_speed) + " 미터"
+        self.weather_trimmed_data_json["wind_speed"] = "초속 " + str(wind_speed) + " 미터"
 
     def convert_cloud(self, clouds_data):
         cloud_amount = clouds_data.get('all')
 
-        self.weather_trimmed_data_json["구름 낀 정도(백분율)"] = str(cloud_amount) + "%"
+        self.weather_trimmed_data_json["cloud_percentage"] = str(cloud_amount) + "%"
 
     def convert_sun_rise(self, sun_rise_data):
         sunrise_time = int(sun_rise_data)
@@ -99,7 +101,7 @@ class WeatherForecastTrimmer():
 
         hour, minute, sec = sunrise_kst_format.split(':')
 
-        self.weather_trimmed_data_json["일출 시간"] = str(hour) + "시 " + str(minute) + "분 " + str(sec) + "초"
+        self.weather_trimmed_data_json["sunrise_time"] = str(hour) + "시 " + str(minute) + "분 " + str(sec) + "초"
 
     def convert_sun_set(self, sun_set_data):
         sunset_time = int(sun_set_data)
@@ -110,4 +112,4 @@ class WeatherForecastTrimmer():
 
         hour, minute, sec = sunset_kst_format.split(':')
 
-        self.weather_trimmed_data_json["일몰 시간"] = str(hour) + "시 " + str(minute) + "분 " + str(sec) + "초"
+        self.weather_trimmed_data_json["sunset_time"] = str(hour) + "시 " + str(minute) + "분 " + str(sec) + "초"

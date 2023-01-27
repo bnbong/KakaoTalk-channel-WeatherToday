@@ -19,3 +19,7 @@ class KakaoGetUser(KakaoUserBase):
 
 class KakaoUserTime(KakaoGetUser):
     user_time: str
+
+
+class KakaoUserLocation(KakaoGetUser):
+    user_location: str

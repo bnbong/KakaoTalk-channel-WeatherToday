@@ -50,17 +50,50 @@ def get_weather_data(request_data):
     response = requests.get(url, params=request_data)
 
     if response.json().get('cod') != 200:
-        message = "Error! Cannot get Weather Data."
+        message = "날씨 정보를 받아오는데 실패했습니다ㅠㅠ"
 
         return {"detail" : message}
 
-    return get_ultimate_weather_data(json_response=response.json())
+    message = WeatherForecastTrimmer(response.json()).weather_trimmed_data_json
+    message['city_name'] = city_name
 
-def get_ultimate_weather_data(json_response):
-    #TODO: edit this code.
-    message = WeatherForecastTrimmer(json_response).weather_trimmed_data_json
+    """
+    {
+        "detail": {
+            "현재 날씨": "Clear",
+            "날씨 상세": "맑음",
+            "현재 온도": "-7 도",
+            "체감 온도": "-12 도",
+            "최고 온도(현재 시각으로부터 전후 3시간)": "-5 도",
+            "최저 온도(현재 시각으로부터 전후 3시간)": "-9 도",
+            "가시 거리": "10000 미터",
+            "풍속": "초속 3.09 미터",
+            "구름 낀 정도(백분율)": "0%",
+            "일출 시간": "07시 39분 45초",
+            "일몰 시간": "17시 49분 17초",
+            "도시 이름": "과천시"
+        }
+    }
+        ---> 
+    {
+    "detail": {
+        "weather_info": "Clear",
+        "weather_detail": "맑음",
+        "temperature": "-7 도",
+        "feeling_temperature": "-12 도",
+        "high_temperature": "-5 도",
+        "low_temperature": "-9 도",
+        "visibility": "10000 미터",
+        "wind_speed": "초속 3.09 미터",
+        "cloud_percentage": "0%",
+        "sunrise_time": "07시 39분 45초",
+        "sunset_time": "17시 49분 17초",
+        "city_name": "과천시"
+    }
+}
+    """
 
-    return message
+    return {"detail" : message}
 
 @router.get('/')
 def get_test_response():
@@ -70,7 +103,18 @@ def get_test_response():
 
 @router.post('/')
 def post_test_response():
-    response = 'this is test post api'
+    response = {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+                {
+                    "simpleText": {
+                        "text": "테스트 택스트 입니다."
+                    }
+                }
+            ]
+        }
+    }
 
     return response
 
@@ -119,16 +163,11 @@ async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
 
     request_data = await request.json()
 
-    user_name = request_data.get('action').get('params').get('user_name')
+    user_name = request_data.get('userRequest').get('user').get('id')
 
     db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
-
-    # user_preferred_time = db_user.user_time # code goes here.
-    # user_preferred_time = str(user_preferred_time) # 유저가 원하는 알람 시간이므로 API param에 포함되지 않는다. 나중에 skill관련으로 제공될예정.
-
-    # API 제공 시간은 각 base time values += 10분
 
     # default location set to Seoul when user_location is not defined.
     request_data = {
@@ -141,30 +180,43 @@ async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
     return response
 
 @router.post('/edit-user-location', response_model=schemas.KakaoUser)
-def edit_user_info(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
+async def edit_user_info(request: Request, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting location via message.
-    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    request_data = await request.json()
+
+    user_name = request_data.get('userRequest').get('user').get('id')
+
+    db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
+        
+    user_location = request_data.get('action').get('params').get('user_location')
+    user = schemas.KakaoUserLocation(user_name=user_name, user_location=user_location)
     
     return crud.edit_user_location(db=db, data=user)
 
 @router.post('/edit-user-time', response_model=schemas.KakaoUser)
-def edit_user_time(user: schemas.KakaoUserTime, db: Session = Depends(get_db)):
+async def edit_user_time(request: Request, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting time via message.
-    db_user = crud.get_kakao_user(db, user_name=user.user_name)
+    request_data = await request.json()
+
+    user_name = request_data.get('userRequest').get('user').get('id')
+
+    db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
+
+    user_time_params = request_data.get('action').get('params').get('user_time')
+    user_time_json = json.loads(user_time_params)
+    user_time = user_time_json.get('time')
+    user = schemas.KakaoUserTime(user_name=user_name, user_time=user_time)
 
     return crud.edit_user_time(db=db, data=user)
 
 @router.post('/create-kakao-user', response_model=schemas.KakaoUser)
 async def create_kakao_user(request: Request, db: Session = Depends(get_db)):
-    # db_user = crud.get_kakao_user(db, user_name=user.user_name)
-    # if db_user:
-    #     raise HTTPException(status_code=400, detail="User already exists.")
     request_data = await request.json()
 
     user_name = request_data.get('userRequest').get('user').get('id')
@@ -187,6 +239,12 @@ async def check_city(request: Request):
     request_data = await request.json()
 
     return 
+
+@router.post('/check-time')
+async def check_time(request: Request):
+    request_data = await request.json()
+
+    return
 
 @router.get('/get-kakao-user', response_model=schemas.KakaoUser)
 def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
