@@ -34,7 +34,7 @@ class TestWeatherInfo():
     
     @classmethod
     def setup_class(cls):
-        from .weather_info import WeatherInfo
+        from app.apps.weather_info import WeatherInfo
 
         cls.weather_info = WeatherInfo()
 

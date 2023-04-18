@@ -1,8 +1,8 @@
 # TODO: refactor after complete testcases.
 
 class TestDatabase():
-    from ..test_session_maker import client, TestingSessionLocal
-    from . import models, schemas, crud
+    from .test_session_maker import client, TestingSessionLocal
+    from app.db import models, schemas, crud    
 
     from sqlalchemy.exc import InvalidRequestError, IntegrityError
 

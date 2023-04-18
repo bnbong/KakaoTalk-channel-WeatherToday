@@ -1,7 +1,7 @@
-from api.routing import get_db
-from db.database import Base
+from app.api.routing import get_db
+from app.db.database import Base
 
-from server import app
+from app.server import app
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine

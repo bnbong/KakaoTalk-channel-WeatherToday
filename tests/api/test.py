@@ -1,10 +1,8 @@
-from dotenv import load_dotenv
-from datetime import date
-
-from .routing import get_weather_data, get_ultimate_weather_data
-
 import os
-import pytest
+
+from dotenv import load_dotenv
+
+from app.api.routing import get_weather_data
 
 
 load_dotenv()
@@ -103,8 +101,8 @@ class TestOuterAPI():
 
 
 class TestInnerAPI():
-    from ..test_session_maker import client
-    from ..db import crud
+    from test_session_maker import client
+    from app.db import crud
 
 
     @classmethod
@@ -130,7 +128,7 @@ class TestInnerAPI():
             pass
 
     def test_end_pointer_router(self):
-        from ..test_session_maker import TestingSessionLocal
+        from test_session_maker import TestingSessionLocal
 
 
         request = {

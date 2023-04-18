@@ -3,7 +3,9 @@ from datetime import datetime, timedelta
 
 class WeatherForecastTrimmer():
     """
-        example response:
+    this module will convert weather data to human-readable data type, 
+    like convert long string of time data to ~ hour, ~ minute, ~ seconds.
+        example of our Outer API(openweathermap) response:
         {
             'coord': {'lon': 126.9571, 'lat': 37.3939}, 
             'weather': [{'id': 804, 'main': 'Clouds', 'description': 'overcast clouds', 'icon': '04d'}], 날씨 아이콘: https://openweathermap.org/weather-conditions
@@ -35,7 +37,6 @@ class WeatherForecastTrimmer():
             'cod': 200
         }
     """
-    
     def __init__(self, data):
         self.weather_trimmed_data_json = {}
 

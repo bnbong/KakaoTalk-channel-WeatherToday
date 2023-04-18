@@ -1,18 +1,18 @@
 # TODO: make Kakao Bot channel skills and link it.
+import os
+import json
+import requests
+
 from fastapi import APIRouter, HTTPException, Depends, Request
 
 from dotenv import load_dotenv
 
 from sqlalchemy.orm import Session
 
-from apps.converter import WeatherForecastTrimmer
+from app.apps.converter import WeatherForecastTrimmer
 
-from db import crud, schemas
-from db.database import SessionLocal
-
-import os
-import requests
-import json
+from app.db import crud, schemas
+from app.db.database import SessionLocal
 
 
 load_dotenv()
@@ -28,37 +28,9 @@ def get_db():
         db.close()
 
 def get_weather_data(request_data):
-    city_name = request_data.get('city_name')
-    api_key = request_data.get('api_key')
-    url = f'https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=kr'
-
-
-    # try:       
-    #     response = requests.get(url, params=request_data)
-
-    #     if response.json().get('cod') != 200:
-    #         message = "Error! Cannot get Weather Data."
-
-    #         return {"detail" : message}
-
-    #     return get_ultimate_weather_data(json_response=response.json())
-
-    # except:
-    #     message = "Unknown Server Error has occurred!, please contact ME (bbbong9@gmail.com)"
-
-    #     return {"detail" : message}
-    response = requests.get(url, params=request_data)
-
-    if response.json().get('cod') != 200:
-        message = "날씨 정보를 받아오는데 실패했습니다ㅠㅠ"
-
-        return {"detail" : message}
-
-    message = WeatherForecastTrimmer(response.json()).weather_trimmed_data_json
-    message['city_name'] = city_name
-
     """
-    {
+    this method will convert weather data like:
+        {
         "detail": {
             "현재 날씨": "Clear",
             "날씨 상세": "맑음",
@@ -89,20 +61,52 @@ def get_weather_data(request_data):
         "sunrise_time": "07시 39분 45초",
         "sunset_time": "17시 49분 17초",
         "city_name": "과천시"
+        }
     }
-}
     """
+    city_name = request_data.get('city_name')
+    api_key = request_data.get('api_key')
+    url = f'https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=kr'
+    # try:
+    #     response = requests.get(url, params=request_data)
+
+    #     if response.json().get('cod') != 200:
+    #         message = "Error! Cannot get Weather Data."
+
+    #         return {"detail" : message}
+
+    #     return get_ultimate_weather_data(json_response=response.json())
+
+    # except:
+    #     message = "Unknown Server Error has occurred!, please contact ME (bbbong9@gmail.com)"
+
+    #     return {"detail" : message}
+    response = requests.get(url, params=request_data)
+
+    if response.json().get('cod') != 200:
+        message = "날씨 정보를 받아오는데 실패했습니다ㅠㅠ"
+
+        return {"detail" : message}
+
+    message = WeatherForecastTrimmer(response.json()).weather_trimmed_data_json
+    message['city_name'] = city_name
 
     return {"detail" : message}
 
 @router.get('/')
 def get_test_response():
+    """
+    testing response for Kakao Channels' bot can reach our API.
+    """
     response = 'this is test api'
 
     return response
 
 @router.post('/')
 def post_test_response():
+    """
+    testing response for Kakao Channels' bot can reach our API.
+    """
     response = {
         "version": "2.0",
         "template": {
@@ -120,44 +124,45 @@ def post_test_response():
 
 @router.post('/get-daily-forecast')
 async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
+    """
+    the end point router which kakao bot's skill uses.
 
-    # the end point router which kakao bot's skill uses.
-
-    # example of Kakao Channel request parameter.
-    # {
-    # "intent": {
-    #     "id": "g7l4sowfugsnagh6q07sm644",
-    #     "name": "블록 이름"
-    # },
-    # "userRequest": {
-    #     "timezone": "Asia/Seoul",
-    #     "params": {
-    #     "ignoreMe": "true"
-    #     },
-    #     "block": {
-    #     "id": "g7l4sowfugsnagh6q07sm644",
-    #     "name": "블록 이름"
-    #     },
-    #     "utterance": "발화 내용",
-    #     "lang": null,
-    #     "user": {
-    #     "id": "932269",
-    #     "type": "accountId",
-    #     "properties": {}
-    #     }
-    # },
-    # "bot": {
-    #     "id": "62fb6c0370055f434dcd360f",
-    #     "name": "봇 이름"
-    # },
-    # "action": {
-    #     "name": "pr57lo7x4x",
-    #     "clientExtra": null,
-    #     "params": {},
-    #     "id": "jnew04s5mc9xk3lf5yd1a0bx",
-    #     "detailParams": {}
-    #   }
-    # }
+    example of Kakao Channel request parameter.
+    {
+    "intent": {
+        "id": "g7l4sowfugsnagh6q07sm644",
+        "name": "블록 이름"
+    },
+    "userRequest": {
+        "timezone": "Asia/Seoul",
+        "params": {
+        "ignoreMe": "true"
+        },
+        "block": {
+        "id": "g7l4sowfugsnagh6q07sm644",
+        "name": "블록 이름"
+        },
+        "utterance": "발화 내용",
+        "lang": null,
+        "user": {
+        "id": "932269",
+        "type": "accountId",
+        "properties": {}
+        }
+    },
+    "bot": {
+        "id": "62fb6c0370055f434dcd360f",
+        "name": "봇 이름"
+    },
+    "action": {
+        "name": "pr57lo7x4x",
+        "clientExtra": null,
+        "params": {},
+        "id": "jnew04s5mc9xk3lf5yd1a0bx",
+        "detailParams": {}
+      }
+    }
+    """
 
     api_key = os.getenv('WEATHER_API_KEY')
 
@@ -176,13 +181,16 @@ async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
     }
 
     response = get_weather_data(request_data)
-    
+
     return response
 
 @router.post('/edit-user-location', response_model=schemas.KakaoUser)
 async def edit_user_info(request: Request, db: Session = Depends(get_db)):
-    # the end point router which kakao bot's skill uses.
-    # change forecasting location via message.
+    """
+    the end point router which kakao bot's skill uses.
+    change forecasting location via message.
+    """
+
     request_data = await request.json()
 
     user_name = request_data.get('userRequest').get('user').get('id')
@@ -190,16 +198,18 @@ async def edit_user_info(request: Request, db: Session = Depends(get_db)):
     db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
-        
+
     user_location = request_data.get('action').get('params').get('user_location')
     user = schemas.KakaoUserLocation(user_name=user_name, user_location=user_location)
-    
+
     return crud.edit_user_location(db=db, data=user)
 
 @router.post('/edit-user-time', response_model=schemas.KakaoUser)
 async def edit_user_time(request: Request, db: Session = Depends(get_db)):
-    # the end point router which kakao bot's skill uses.
-    # change forecasting time via message.
+    """
+    the end point router which kakao bot's skill uses.
+    change forecasting time via message.
+    """
     request_data = await request.json()
 
     user_name = request_data.get('userRequest').get('user').get('id')
@@ -217,6 +227,9 @@ async def edit_user_time(request: Request, db: Session = Depends(get_db)):
 
 @router.post('/create-kakao-user', response_model=schemas.KakaoUser)
 async def create_kakao_user(request: Request, db: Session = Depends(get_db)):
+    """
+    Create KakakoTalk User at DB who add KWB channel and called our bot.
+    """
     request_data = await request.json()
 
     user_name = request_data.get('userRequest').get('user').get('id')
@@ -236,29 +249,44 @@ async def create_kakao_user(request: Request, db: Session = Depends(get_db)):
 
 @router.post('/check-city')
 async def check_city(request: Request):
+    """
+    check KakaoTalk User's preferred city.
+    """
     request_data = await request.json()
 
     return 
 
 @router.post('/check-time')
 async def check_time(request: Request):
+    """
+    check KakaoTalk User's preferred time.
+    """
     request_data = await request.json()
 
     return
 
 @router.get('/get-kakao-user', response_model=schemas.KakaoUser)
 def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
+    """
+    Get KakaoTalk user's info.
+    """
     db_user = crud.get_kakao_user(db, user_name=user.user_name)
 
     return db_user
 
 @router.get('/get-kakao-users')
 def get_kakao_users(db: Session = Depends(get_db)):
+    """
+    Get all of KakaoTalk user's info that at DB.
+    """
     
     return crud.get_kakao_users(db)
 
 @router.delete('/delete-kakao-user')
 def delete_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
+    """
+    Delete KakaoTalk user's info.
+    """
     db_user = crud.get_kakao_user(db, user_name=user.user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
