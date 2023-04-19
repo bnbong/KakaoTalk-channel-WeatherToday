@@ -1,4 +1,4 @@
-kakaoweatherbotvenv/
+app/KakaoWeatherBotvenv/
 app/.env
 .pytest_cache
 __pycache__
