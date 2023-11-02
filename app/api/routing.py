@@ -19,6 +19,7 @@ load_dotenv()
 
 router = APIRouter()
 
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -27,13 +28,13 @@ def get_db():
     finally:
         db.close()
 
+
 def get_weather_data(request_data):
-    city_name = request_data.get('city_name')
-    api_key = request_data.get('api_key')
-    url = f'https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=kr'
+    city_name = request_data.get("city_name")
+    api_key = request_data.get("api_key")
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=kr"
 
-
-    # try:       
+    # try:
     #     response = requests.get(url, params=request_data)
 
     #     if response.json().get('cod') != 200:
@@ -49,13 +50,13 @@ def get_weather_data(request_data):
     #     return {"detail" : message}
     response = requests.get(url, params=request_data)
 
-    if response.json().get('cod') != 200:
+    if response.json().get("cod") != 200:
         message = "날씨 정보를 받아오는데 실패했습니다ㅠㅠ"
 
-        return {"detail" : message}
+        return {"detail": message}
 
     message = WeatherForecastTrimmer(response.json()).weather_trimmed_data_json
-    message['city_name'] = city_name
+    message["city_name"] = city_name
 
     """
     {
@@ -93,34 +94,28 @@ def get_weather_data(request_data):
 }
     """
 
-    return {"detail" : message}
+    return {"detail": message}
 
-@router.get('/')
+
+@router.get("/")
 def get_test_response():
-    response = 'this is test api'
+    response = "this is test api"
 
     return response
 
-@router.post('/')
+
+@router.post("/")
 def post_test_response():
     response = {
         "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "text": "테스트 택스트 입니다."
-                    }
-                }
-            ]
-        }
+        "template": {"outputs": [{"simpleText": {"text": "테스트 택스트 입니다."}}]},
     }
 
     return response
 
-@router.post('/get-daily-forecast')
-async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
 
+@router.post("/get-daily-forecast")
+async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
 
     # example of Kakao Channel request parameter.
@@ -159,105 +154,111 @@ async def get_daily_forecast(request: Request, db: Session = Depends(get_db)):
     #   }
     # }
 
-    api_key = os.getenv('WEATHER_API_KEY')
+    api_key = os.getenv("WEATHER_API_KEY")
 
     request_data = await request.json()
 
-    user_name = request_data.get('userRequest').get('user').get('id')
+    user_name = request_data.get("userRequest").get("user").get("id")
 
     db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
 
     # default location set to Seoul when user_location is not defined.
-    request_data = {
-        'api_key' : api_key,
-        'city_name' : db_user.user_location
-    }
+    request_data = {"api_key": api_key, "city_name": db_user.user_location}
 
     response = get_weather_data(request_data)
-    
+
     return response
 
-@router.post('/edit-user-location', response_model=schemas.KakaoUser)
+
+@router.post("/edit-user-location", response_model=schemas.KakaoUser)
 async def edit_user_info(request: Request, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting location via message.
     request_data = await request.json()
 
-    user_name = request_data.get('userRequest').get('user').get('id')
+    user_name = request_data.get("userRequest").get("user").get("id")
 
     db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
-        
-    user_location = request_data.get('action').get('params').get('user_location')
+
+    user_location = request_data.get("action").get("params").get("user_location")
     user = schemas.KakaoUserLocation(user_name=user_name, user_location=user_location)
-    
+
     return crud.edit_user_location(db=db, data=user)
 
-@router.post('/edit-user-time', response_model=schemas.KakaoUser)
+
+@router.post("/edit-user-time", response_model=schemas.KakaoUser)
 async def edit_user_time(request: Request, db: Session = Depends(get_db)):
     # the end point router which kakao bot's skill uses.
     # change forecasting time via message.
     request_data = await request.json()
 
-    user_name = request_data.get('userRequest').get('user').get('id')
+    user_name = request_data.get("userRequest").get("user").get("id")
 
     db_user = crud.get_kakao_user(db, user_name=user_name)
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Exists.")
 
-    user_time_params = request_data.get('action').get('params').get('user_time')
+    user_time_params = request_data.get("action").get("params").get("user_time")
     user_time_json = json.loads(user_time_params)
-    user_time = user_time_json.get('time')
+    user_time = user_time_json.get("time")
     user = schemas.KakaoUserTime(user_name=user_name, user_time=user_time)
 
     return crud.edit_user_time(db=db, data=user)
 
-@router.post('/create-kakao-user', response_model=schemas.KakaoUser)
+
+@router.post("/create-kakao-user", response_model=schemas.KakaoUser)
 async def create_kakao_user(request: Request, db: Session = Depends(get_db)):
     request_data = await request.json()
 
-    user_name = request_data.get('userRequest').get('user').get('id')
+    user_name = request_data.get("userRequest").get("user").get("id")
 
     db_user = crud.get_kakao_user(db, user_name=user_name)
     if db_user:
         raise HTTPException(status_code=400, detail="User already exists.")
-    
-    user_location = request_data.get('action').get('params').get('user_location')
-    user_time_params = request_data.get('action').get('params').get('user_time')
+
+    user_location = request_data.get("action").get("params").get("user_location")
+    user_time_params = request_data.get("action").get("params").get("user_time")
 
     user_time_json = json.loads(user_time_params)
-    user_time = user_time_json.get('time')
+    user_time = user_time_json.get("time")
 
-    user = schemas.KakaoUser(user_name=user_name, user_location=user_location, user_time=user_time)
+    user = schemas.KakaoUser(
+        user_name=user_name, user_location=user_location, user_time=user_time
+    )
     return crud.create_kakao_user(db=db, data=user)
 
-@router.post('/check-city')
+
+@router.post("/check-city")
 async def check_city(request: Request):
     request_data = await request.json()
 
-    return 
+    return
 
-@router.post('/check-time')
+
+@router.post("/check-time")
 async def check_time(request: Request):
     request_data = await request.json()
 
     return
 
-@router.get('/get-kakao-user', response_model=schemas.KakaoUser)
+
+@router.get("/get-kakao-user", response_model=schemas.KakaoUser)
 def get_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     db_user = crud.get_kakao_user(db, user_name=user.user_name)
 
     return db_user
 
-@router.get('/get-kakao-users')
+
+@router.get("/get-kakao-users")
 def get_kakao_users(db: Session = Depends(get_db)):
-    
     return crud.get_kakao_users(db)
 
-@router.delete('/delete-kakao-user')
+
+@router.delete("/delete-kakao-user")
 def delete_kakao_user(user: schemas.KakaoGetUser, db: Session = Depends(get_db)):
     db_user = crud.get_kakao_user(db, user_name=user.user_name)
     if not db_user:

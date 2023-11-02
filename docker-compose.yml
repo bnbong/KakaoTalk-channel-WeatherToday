@@ -1,0 +1,2 @@
+# docker network myserver_api_net
+# configure postgresql, fastapi_app container.
