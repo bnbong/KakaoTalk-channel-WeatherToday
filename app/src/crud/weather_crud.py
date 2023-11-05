@@ -1,12 +1,12 @@
-# TODO: return type 명시
 # --------------------------------------------------------------------------
 # KakaoChannelUser model의 CRUD를 담당하는 메서드를 정의한 모듈입니다.
 #
 # @author bnbong bbbong9@gmail.com
 # --------------------------------------------------------------------------
-import aiohttp
+import requests
 
-from fastapi import Request, HTTPException
+from typing import Optional, Union, Any
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -17,61 +17,39 @@ from src.schemas import schema
 from src.utils.converter import WeatherForecastTrimmer
 
 
-async def get_weather_data(request: Request):
-    # TODO: city_name, app_key 부분 수정.
-    """
-        {
-            "detail": {
-                "현재 날씨": "Clear",
-                "날씨 상세": "맑음",
-                "현재 온도": "-7 도",
-                "체감 온도": "-12 도",
-                "최고 온도(현재 시각으로부터 전후 3시간)": "-5 도",
-                "최저 온도(현재 시각으로부터 전후 3시간)": "-9 도",
-                "가시 거리": "10000 미터",
-                "풍속": "초속 3.09 미터",
-                "구름 낀 정도(백분율)": "0%",
-                "일출 시간": "07시 39분 45초",
-                "일몰 시간": "17시 49분 17초",
-                "도시 이름": "과천시"
-            }
-        }
-            --->
-        {
-        "detail": {
-            "weather_info": "Clear",
-            "weather_detail": "맑음",
-            "temperature": "-7 도",
-            "feeling_temperature": "-12 도",
-            "high_temperature": "-5 도",
-            "low_temperature": "-9 도",
-            "visibility": "10000 미터",
-            "wind_speed": "초속 3.09 미터",
-            "cloud_percentage": "0%",
-            "sunrise_time": "07시 39분 45초",
-            "sunset_time": "17시 49분 17초",
-            "city_name": "과천시"
-        }
-    }
-    """
-    city_name = request.get("city_name")
-    api_key = request.get("api_key")
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}&units=metric&lang=kr"
+def get_weather_data(request_data) -> Optional[list]:
+    url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status != 200:
-                message = "날씨 정보를 받아오는데 실패했습니다ㅠㅠ"
-                raise HTTPException(status_code=400, detail=message)
+    response = requests.get(url, params=request_data)
 
-            data = await response.json()
-            message = WeatherForecastTrimmer(data).weather_trimmed_data_json
-            message["city_name"] = city_name
-
-            return {"detail": message}
+    return get_ultimate_weather_data(json_response=response.json())
 
 
-async def get_kakao_user(db: AsyncSession, user_uid: UUID):
+def get_ultimate_weather_data(json_response) -> Union[Optional[list], tuple[Any, str]]:
+    response_header = json_response.get("response").get("header")
+
+    if response_header.get("resultCode") != "00":
+        if response_header.get("resultMsg") == "NO_DATA":
+            return json_response.json(), "We got wrong request values :("
+
+    else:
+        json_response = (
+            json_response.get("response").get("body").get("items").get("item")
+        )
+
+        message = []
+
+        for item in json_response:
+            item_pointer = WeatherForecastTrimmer()
+            item_pointer.category_converter(item)
+
+            if item_pointer.weather_value is not None:
+                message.append(item_pointer.weather_value)
+
+        return message
+
+
+async def get_kakao_user(db: AsyncSession, user_uid: UUID) -> schema.KakaoUser:
     response_model = schema.KakaoUser
     query = select(KakaoChannelUser).filter(KakaoChannelUser.uid == user_uid)
 
@@ -79,7 +57,9 @@ async def get_kakao_user(db: AsyncSession, user_uid: UUID):
     return response_model.model_validate(result.__dict__)
 
 
-async def create_kakao_user(db: AsyncSession, user: schema.KakaoUserBase):
+async def create_kakao_user(
+    db: AsyncSession, user: schema.KakaoUserBase
+) -> schema.KakaoUser:
     response_model = schema.KakaoUser
     user_data = user.model_dump()
     db_user = KakaoChannelUser(**user_data)
@@ -92,7 +72,7 @@ async def create_kakao_user(db: AsyncSession, user: schema.KakaoUserBase):
 
 async def edit_kakao_user(
     db: AsyncSession, user_uid: UUID, user: schema.KakaoUserUpdate
-):
+) -> schema.KakaoUser:
     response_model = schema.KakaoUser
     query = select(KakaoChannelUser).filter(KakaoChannelUser.uid == user_uid)
     db_user = (await db.execute(query)).scalar_one_or_none()
@@ -107,7 +87,7 @@ async def edit_kakao_user(
     return response_model.model_validate(db_user.__dict__)
 
 
-async def delete_kakao_user(db: AsyncSession, user_uid: UUID):
+async def delete_kakao_user(db: AsyncSession, user_uid: UUID) -> Optional[UUID]:
     query = select(KakaoChannelUser).filter(KakaoChannelUser.uid == user_uid)
     db_user = (await db.execute(query)).scalar_one_or_none()
     if db_user:

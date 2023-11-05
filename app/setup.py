@@ -6,9 +6,7 @@
 # --------------------------------------------------------------------------
 from setuptools import setup, find_packages
 
-install_requires = [
-
-]
+install_requires = []
 
 # IDE will watch this setup config through your project src, and help you to set up your environment
 setup(

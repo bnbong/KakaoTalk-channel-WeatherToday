@@ -1,3 +1,71 @@
+import pytest_asyncio
+
+from httpx import AsyncClient
+
+
+class TestAPI:
+    @pytest_asyncio.fixture(autouse=True)
+    async def setup(self, app_client: AsyncClient):
+        pass
+
+    async def test_ping(self, app_client: AsyncClient):
+        # given
+
+        # when
+        response = await app_client.get("/kakao-weather-bot/api/v1/_ping")
+
+        # then
+        assert response.status_code == 200
+        assert response.json() == {"message": "pong!"}
+
+    async def test_create_user(self, app_client: AsyncClient):
+        # given
+
+        # when
+        response = await app_client.post(
+            "/kakao-weather-bot/api/v1/user/",
+            json={
+                "user_name": "Test User",
+                "is_active": True,
+            },
+        )
+
+        # then
+        data = response.json()
+        assert response.status_code == 200
+        assert data["user_name"] == "Test User"
+        assert data["is_active"] == True
+        assert data["user_time"] == "0800"
+        assert data["user_location"] == "서울특별시"
+
+    async def test_get_weather_data(self, app_client: AsyncClient):
+        # given
+
+        # when
+        response = await app_client.post(
+            "/kakao-weather-bot/api/v1/daily-forecast",
+            json={
+                "user_name": "Test User",
+            },
+        )
+
+        # then
+        print(response.json())
+        data = response.json()
+        assert response.status_code == 200
+        assert data is not None
+        assert data["풍속"] is not None
+
+    async def test_get_user_data(self, app_client: AsyncClient):
+        pass
+
+    async def test_edit_user_data(self, app_client: AsyncClient):
+        pass
+
+    async def test_delete_user_data(self, app_client: AsyncClient):
+        pass
+
+
 # class TestOuterAPI:
 #     import requests
 #

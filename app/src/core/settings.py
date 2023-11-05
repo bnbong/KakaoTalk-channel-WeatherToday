@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from pydantic import AnyUrl, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AppSettings(BaseSettings):
@@ -43,7 +43,7 @@ class AppSettings(BaseSettings):
     )
 
     DATABASE_URI: AnyUrl = Field(
-        default="postgresql+asyncpg://bnbong:password@localhost:5432/fastapidb",
+        default="postgresql+asyncpg://postgres:password@localhost:5432/fastapidb",
         description="Postgres connection URI.",
     )
     DATABASE_OPTIONS: Dict[str, Any] = Field(
@@ -53,17 +53,19 @@ class AppSettings(BaseSettings):
             "pool_recycle": 300,
             "pool_pre_ping": True,
             "connect_args": {
-                "keepalives": 1,
-                "keepalives_idle": 30,
-                "keepalives_interval": 15,
+                # to disable SQLA's statement cache for `.prepare()`
+                "prepared_statement_cache_size": 0,
+                # to disable asyncpg's statement cache for `.execute()`
+                "statement_cache_size": 0,
             },
         },
         description="Postgres option to create a connection.",
     )
-    API_APP_KEY: str = Field(
+    WEATHER_API_APP_KEY: str = Field(
         default="example_api_app_key",
         description="공공 기상데이터 포털에서 제공하는 일일 날씨 데이터 API의 key입니다.",
     )
 
-    class ConfigDict:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+    )

@@ -7,6 +7,6 @@ from fastapi import APIRouter
 
 from .router import kakao_router
 
-router = APIRouter(prefix="/kakao-channel/v1")
+router = APIRouter(prefix="/kakao-weather-bot/api/v1")
 
 router.include_router(kakao_router, tags=["kakao-weather-api"])
