@@ -1,0 +1,32 @@
+# docker network myserver_api_net
+# configure postgresql, fastapi_app container.
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    environment:
+      - DATABASE_URI=postgresql+asyncpg://postgres:password@db:5432/fastapidb
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+
+  db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fastapidb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

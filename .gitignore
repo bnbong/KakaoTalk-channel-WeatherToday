@@ -1,8 +1,15 @@
 app/KakaoWeatherBotvenv/
+venv/
+*/venv/
 app/.env
+app/.env.test
 .pytest_cache
 __pycache__
+*.env
+*.env.test
 # *.xlsx
 # *.docx
 *.db
 logs/
+.idea/
+.DS_Store

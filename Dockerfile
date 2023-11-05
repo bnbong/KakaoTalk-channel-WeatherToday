@@ -1,6 +1,4 @@
-# kakao-weatherapp-dockerfile-backup
-
-FROM python:3.10
+FROM python:3.10.10
 
 WORKDIR /app
 
@@ -10,4 +8,4 @@ RUN pip install --no-cache-dir --upgrade -r /requirements.txt
 
 COPY ./app /app
 
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "9090", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9090", "--reload"]
