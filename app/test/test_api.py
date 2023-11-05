@@ -3,10 +3,73 @@ import pytest_asyncio
 from httpx import AsyncClient
 
 
+async def _create_user(
+        app_client: AsyncClient, user_name: str, user_time: str, user_location: str
+):
+    """Helper function to create an user and return user's info"""
+    response = await app_client.post(
+        "/kakao-weather-bot/api/v1/user/",
+        json={
+            "user_name": user_name,
+            "user_time": user_time,
+            "user_location": user_location,
+            "is_active": True,
+        },
+    )
+    return response.json()
+
+
 class TestAPI:
+    @classmethod
+    def setup_class(cls):
+        cls.kakao_request_payload = {
+            "intent": {
+                "id": "6n254h25rfd7cgw31hlgwber",
+                "name": "블록 이름"
+            },
+            "userRequest": {
+                "timezone": "Asia/Seoul",
+                "params": {
+                    "ignoreMe": "true"
+                },
+                "block": {
+                    "id": "6n254h25rfd7cgw31hlgwber",
+                    "name": "블록 이름"
+                },
+                "utterance": "발화 내용",
+                "lang": None,
+                "user": {
+                    "id": "866540",
+                    "type": "accountId",
+                    "properties": {}
+                }
+            },
+            "bot": {
+                "id": "62fb6c0370055f434dcd360f",
+                "name": "봇 이름"
+            },
+            "action": {
+                "name": "olutzmbfur",
+                "clientExtra": None,
+                "params": {
+                    "user_name": "Test User"
+                },
+                "id": "gwnjegxd1ujww6j3hccpjtnc",
+                "detailParams": {
+                    "user_name": {
+                        "origin": "Test User",
+                        "value": "Test User",
+                        "groupName": ""
+                    }
+                }
+            }
+        }
+
     @pytest_asyncio.fixture(autouse=True)
     async def setup(self, app_client: AsyncClient):
-        pass
+        self.test_user = await _create_user(
+            app_client, "Test User", "0800", "분당구"
+        )
 
     async def test_ping(self, app_client: AsyncClient):
         # given
@@ -25,7 +88,7 @@ class TestAPI:
         response = await app_client.post(
             "/kakao-weather-bot/api/v1/user/",
             json={
-                "user_name": "Test User",
+                "user_name": "New User",
                 "is_active": True,
             },
         )
@@ -33,7 +96,7 @@ class TestAPI:
         # then
         data = response.json()
         assert response.status_code == 200
-        assert data["user_name"] == "Test User"
+        assert data["user_name"] == "New User"
         assert data["is_active"] == True
         assert data["user_time"] == "0800"
         assert data["user_location"] == "서울특별시"
@@ -44,9 +107,7 @@ class TestAPI:
         # when
         response = await app_client.post(
             "/kakao-weather-bot/api/v1/daily-forecast",
-            json={
-                "user_name": "Test User",
-            },
+            json=self.kakao_request_payload,
         )
 
         # then
@@ -57,14 +118,56 @@ class TestAPI:
         assert data["풍속"] is not None
 
     async def test_get_user_data(self, app_client: AsyncClient):
-        pass
+        # given
+        user_uid = self.test_user["uid"]
+
+        # when
+        response = await app_client.get(
+            f"/kakao-weather-bot/api/v1/user/{user_uid}",
+        )
+
+        # then
+        data = response.json()
+        assert response.status_code == 200
+        assert data["user_name"] == "Test User"
+        assert data["user_time"] == "0800"
+        assert data["user_location"] == "분당구"
+        assert data["is_active"] == True
 
     async def test_edit_user_data(self, app_client: AsyncClient):
-        pass
+        # given
+        user_uid = self.test_user["uid"]
+
+        # when
+        response = await app_client.put(
+            f"/kakao-weather-bot/api/v1/user/{user_uid}",
+            json={
+                "user_time": "1200",
+                "is_active": False,
+            },
+        )
+
+        # then
+        data = response.json()
+        assert response.status_code == 200
+        assert data["user_name"] == "Test User"
+        assert data["user_time"] == "1200"
+        assert data["user_location"] == "분당구"
+        assert data["is_active"] == False
 
     async def test_delete_user_data(self, app_client: AsyncClient):
-        pass
+        # given
+        user_uid = self.test_user["uid"]
 
+        # when
+        response = await app_client.delete(
+            f"/kakao-weather-bot/api/v1/user/{user_uid}",
+        )
+
+        # then
+        data = response.json()
+        assert response.status_code == 200
+        assert data == user_uid
 
 # class TestOuterAPI:
 #     import requests

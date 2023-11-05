@@ -1,3 +1,36 @@
+import pytest_asyncio
+
+from app.src.utils.xlsx_reader import XlsxReader
+
+
+class TestUtils:
+    @classmethod
+    def setup_class(cls):
+        cls.xlsx_pointer = XlsxReader()
+
+    async def test_could_read_xlsx_data(self):
+        result = self.xlsx_pointer.get_all_xlsx_data()
+
+        assert 60 == (result[0])
+        assert 127 == (result[1])
+
+    async def test_could_get_nx_ny_from_formatted_user_location_data(self):
+        location_name = "백현동"
+        result = self.xlsx_pointer.filter_xlsx_data(location_name)
+
+        assert (62, 123) == (result[0], result[1])
+
+        location_name = "경기도"
+        result = self.xlsx_pointer.filter_xlsx_data(location_name)
+
+        assert (60, 120) == (result[0], result[1])
+
+        location_name = "성남시"
+        result = self.xlsx_pointer.filter_xlsx_data(location_name)
+
+        assert (63, 124) == (result[0], result[1])
+
+
 # import pytest
 #
 #
@@ -66,26 +99,4 @@
 #
 #     def test_temperature_rises_hard(self):
 #         # informs temperature rises hard, so be careful at clothes.
-#         pass
-#
-#
-# class TestMessageConverter:
-#     def test_could_convert_readable_weather_info_with_list(self):
-#         # from ..apps.converter import ForecastDataTrimmer
-#
-#         # self.request_data.update({'numOfRows': '14'})
-#         # response = self.requests.get(self.url, params=self.request_data)
-#
-#         # json_response = response.json().get('response').get('body').get('items').get('item')
-#
-#         # message = []
-#
-#         # for item in json_response:
-#         #     item_pointer = ForecastDataTrimmer()
-#         #     item_pointer.category_converter(item)
-#
-#         #     if item_pointer.weather_value is not None:
-#         #         message.append(item_pointer.weather_value)
-#
-#         # assert not None == (message)
 #         pass

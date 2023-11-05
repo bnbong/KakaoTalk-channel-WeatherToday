@@ -3,9 +3,6 @@
 #
 # @author bnbong bbbong9@gmail.com
 # --------------------------------------------------------------------------
-from datetime import datetime, timedelta
-
-
 class WeatherForecastTrimmer:
     """
     API가 제공하는 날씨 데이터 정보
@@ -76,11 +73,11 @@ class WeatherForecastTrimmer:
             self.weather_value = value
         else:
             value = value[:-2]
-            if float(value) < (float)(1.0):
+            if float(value) < float(1.0):
                 self.weather_value = "1.0mm 미만"
-            elif float(value) < (float)(30.0):
+            elif float(value) < float(30.0):
                 self.weather_value = "1.0 ~ 29.0mm"
-            elif float(value) < (float)(50.0):
+            elif float(value) < float(50.0):
                 self.weather_value = "30.0 ~ 50.0mm"
             else:
                 self.weather_value = "50.0mm 이상"
@@ -88,9 +85,9 @@ class WeatherForecastTrimmer:
     def sno_calculator(self, value):
         if value == "적설없음":
             self.weather_value = value
-        elif float(value) < (float)(1.0):
+        elif float(value) < float(1.0):
             self.weather_value = "1.0cm 미만"
-        elif float(value) < (float)(5.0):
+        elif float(value) < float(5.0):
             self.weather_value = value + "cm"
         else:
             self.weather_value = "5.0cm 이상"
@@ -137,3 +134,18 @@ class WeatherForecastTrimmer:
             self.weather_value = "구름많음"
         else:
             self.weather_value = "흐림"
+
+
+class UserDataTrimmer:
+    @staticmethod
+    def convert_user_locations_into_readable_data(
+        first_location, second_location, third_location
+    ):
+        if third_location is not None:
+            return {"3단계": third_location}
+        elif second_location is not None:
+            return {"2단계": second_location}
+        elif first_location is not None:
+            return {"1단계": first_location}
+        else:
+            return {"1단계": "서울특별시"}

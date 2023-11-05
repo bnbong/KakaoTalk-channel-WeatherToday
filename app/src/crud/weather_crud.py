@@ -57,6 +57,14 @@ async def get_kakao_user(db: AsyncSession, user_uid: UUID) -> schema.KakaoUser:
     return response_model.model_validate(result.__dict__)
 
 
+async def get_kakao_user_by_name(db: AsyncSession, user_name: str) -> schema.KakaoUser:
+    response_model = schema.KakaoUser
+    query = select(KakaoChannelUser).filter(KakaoChannelUser.user_name == user_name)
+
+    result = (await db.execute(query)).scalar_one_or_none()
+    return response_model.model_validate(result.__dict__)
+
+
 async def create_kakao_user(
     db: AsyncSession, user: schema.KakaoUserBase
 ) -> schema.KakaoUser:
