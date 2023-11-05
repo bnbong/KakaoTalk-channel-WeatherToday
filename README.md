@@ -13,36 +13,33 @@ Add WeatherToday Bot KakaoTalk channel [LINK(will be added later)]()
 
 ## Environments
 
-### Deployment Region
+### Deployment Info
 
-- CloudServer is Located at Seoul
-- Service will deployed at Korea, Republic of.
+- API server region is at Osaka, Japan
 - KakaoTalk Channel with Chatbot
 
-### Deployment Environments
+### Deployment Architecture
 
-- Vultr Cloud Server (Main API server)
-- Docker & Docker Hub (Running & Store container image)
-- Git & GitHub (version control & Source codes)
-- Nginx (Reverse proxy server)
-- PostgreSQL (Database)
-- Uvicorn (ASGI server)
+- Instance - Oracle Cloud Computing Instance(Osaka, Japan)
+- Container - Docker & Docker Hub
+- VCM - Git & GitHub
+- Database - PostgreSQL
+- ASGI server - Uvicorn
 
 ### Development Environments
 
-- Language / Framework - Python 3.10.8 / FastAPI
-- Server OS - Ubuntu 20.04.5 LTS
-- Docker - version 20.10.21, build baeda1f
-- Nginx - version: nginx/1.18.0 (Ubuntu)
+- Language / Framework - Python 3.10.10 / FastAPI
+- Server OS - Ubuntu 22.04
+- Docker - version 24.0.2, build cb74dfc
 - PostgreSQL - version 13.3
-- Visual Studio Code - Code Server (at Docker Container)
 - Project Managing & Issue Managing - [JIRA](https://bnbong.atlassian.net/jira/software/projects/KWB/boards/1)
 - Issue Control & Uploads, Backups files - Slack
 
 
-## Deployment
+## CI/CD
 
 - [Docker Hub Link](https://hub.docker.com/repository/docker/bnbong/kakao_weather_forecast_chatbot/general)
+- [Jenkins Link(will be added later)]()
 
 ## License
 
